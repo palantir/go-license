@@ -1,0 +1,51 @@
+{
+    "imports": [
+        {
+            "path": "github.com/palantir/godel/vendor/github.com/palantir/pkg/matcher",
+            "numGoFiles": 3,
+            "numImportedGoFiles": 0,
+            "importedFrom": [
+                "github.com/palantir/godel/pkg/dirchecksum"
+            ]
+        },
+        {
+            "path": "github.com/palantir/godel/vendor/github.com/termie/go-shutil",
+            "numGoFiles": 1,
+            "numImportedGoFiles": 0,
+            "importedFrom": [
+                "github.com/palantir/godel/pkg/dirchecksum"
+            ]
+        }
+    ],
+    "mainOnlyImports": [],
+    "testOnlyImports": [
+        {
+            "path": "github.com/palantir/godel/vendor/github.com/nmiyake/pkg/dirs",
+            "numGoFiles": 2,
+            "numImportedGoFiles": 0,
+            "importedFrom": [
+                "github.com/palantir/godel/pkg/dirchecksum_test"
+            ]
+        },
+        {
+            "path": "github.com/palantir/godel/vendor/github.com/stretchr/testify/assert",
+            "numGoFiles": 6,
+            "numImportedGoFiles": 9,
+            "importedFrom": [
+                "github.com/palantir/godel/pkg/dirchecksum_test",
+                "github.com/palantir/godel/pkg/osarch_test",
+                "github.com/palantir/godel/pkg/products_test"
+            ]
+        },
+        {
+            "path": "github.com/palantir/godel/vendor/github.com/stretchr/testify/require",
+            "numGoFiles": 5,
+            "numImportedGoFiles": 15,
+            "importedFrom": [
+                "github.com/palantir/godel/pkg/dirchecksum_test",
+                "github.com/palantir/godel/pkg/osarch_test",
+                "github.com/palantir/godel/pkg/products_test"
+            ]
+        }
+    ]
+}
