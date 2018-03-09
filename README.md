@@ -1,13 +1,13 @@
-golicense
-=========
-`golicense` is a tool that ensures that a license header is applied to all Go files in a project.
+go-license
+==========
+`go-license` is a tool that ensures that a license header is applied to all Go files in a project.
 
 Usage
 -----
-Run `./golicense --config=license.yml` to apply the license specified by the configuration in `license.yml` to all of
+Run `./go-license --config=license.yml` to apply the license specified by the configuration in `license.yml` to all of
 the `*.go` files rooted in the current working directory.
 
-Run `./golicense --config=license.yml --verify` to verify that the license specified by the configuration is applied to
+Run `./go-license --config=license.yml --verify` to verify that the license specified by the configuration is applied to
 all of the `*.go` files rooted in the current working directory. If the license is not applied properly to any of the
 files, the files that do not match are printed and the program exits with a non-0 exit code.
 
@@ -42,3 +42,7 @@ exclude:
   exclude-names:
     - "vendor"
 ```
+
+go-license-plugin
+=================
+go-license-plugin is a gödel plugin that provides the `license` task, which runs go-license on the project Go files.
