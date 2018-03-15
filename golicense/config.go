@@ -24,71 +24,69 @@ import (
 )
 
 type ProjectParam struct {
-	// Header is the expected license header. All applicable files are expected to start with this header followed
-	// by a newline.
-	Header string
+	// The default Licenser.
+	Licenser Licenser
 
 	// CustomHeaders specifies the custom header parameters. Custom header parameters can be used to specify that
 	// certain directories or files in the project should use a header that is different from "Header".
 	CustomHeaders []CustomHeaderParam
 
-	// Exclude matches the files and directories that should be excluded from consideration for verifying or
-	// applying licenses.
+	// Exclude matches the files and directories that should be excluded from consideration for verifying or applying
+	// licenses.
 	Exclude matcher.Matcher
 }
 
 type ProjectConfig struct {
 	// Header is the expected license header. All applicable files are expected to start with this header followed
-	// by a newline.
+	// by a newline. Any occurrences of the string {{YEAR}} is treated specially: when generating a license, the current
+	// year will be substituted for it, and when verifying a license, any 4-digit string will be considered a match.
 	Header string `yaml:"header"`
 
 	// CustomHeaders specifies the custom header parameters. Custom header parameters can be used to specify that
 	// certain directories or files in the project should use a header that is different from "Header".
 	CustomHeaders []CustomHeaderConfig `yaml:"custom-headers"`
 
-	// Exclude matches the files and directories that should be excluded from consideration for verifying or
-	// applying licenses.
+	// Exclude matches the files and directories that should be excluded from consideration for verifying or applying
+	// licenses.
 	Exclude matcher.NamesPathsCfg `yaml:"exclude"`
 }
 
 func (c *ProjectConfig) ToParam() (ProjectParam, error) {
 	customHeaders := make([]CustomHeaderParam, len(c.CustomHeaders))
 	for i, v := range c.CustomHeaders {
-		customHeaders[i] = v.ToParam()
+		headerVal, err := v.ToParam()
+		if err != nil {
+			return ProjectParam{}, err
+		}
+		customHeaders[i] = headerVal
 	}
+
 	if err := validateCustomHeaderParams(customHeaders); err != nil {
 		return ProjectParam{}, err
 	}
 	return ProjectParam{
-		Header:        c.Header,
+		Licenser:      NewLicenser(c.Header),
 		CustomHeaders: customHeaders,
 		Exclude:       c.Exclude.Matcher(),
 	}, nil
 }
 
 func validateCustomHeaderParams(headerParams []CustomHeaderParam) error {
-	var emptyNameParams []CustomHeaderParam
-	nameToParams := make(map[string][]CustomHeaderParam)
-
-	for _, v := range headerParams {
-		if v.Name == "" {
-			emptyNameParams = append(emptyNameParams, v)
+	allNames := make(map[string]struct{})
+	collisions := make(map[string]struct{})
+	for _, param := range headerParams {
+		if _, seen := allNames[param.Name]; seen {
+			collisions[param.Name] = struct{}{}
 		}
-		nameToParams[v.Name] = append(nameToParams[v.Name], v)
+		allNames[param.Name] = struct{}{}
 	}
-
-	if len(emptyNameParams) > 0 {
-		return errors.Errorf("custom header entries have blank names: %+v", emptyNameParams)
-	}
-
-	var nameCollisionMsgs []string
-	for k, v := range nameToParams {
-		if len(v) > 1 {
-			nameCollisionMsgs = append(nameCollisionMsgs, fmt.Sprintf("%s: %+v", k, v))
+	if len(collisions) > 0 {
+		var sortedNames []string
+		for k := range collisions {
+			sortedNames = append(sortedNames, k)
 		}
-	}
-	if len(nameCollisionMsgs) > 0 {
-		return errors.Errorf(strings.Join(append([]string{"multiple custom header entries have the same name:"}, nameCollisionMsgs...), "\n\t"))
+		sort.Strings(sortedNames)
+		return errors.Errorf("custom header(s) defined multiple times: %v", sortedNames)
 	}
 
 	// map from path to custom header entries that have the path
@@ -120,9 +118,8 @@ type CustomHeaderParam struct {
 	// Name is the identifier used to identify this custom license parameter. Must be unique.
 	Name string
 
-	// Header is the expected license header. All applicable files are expected to start with this header followed
-	// by a newline.
-	Header string
+	// Licenser for this parameter.
+	Licenser Licenser
 
 	// IncludePaths specifies the paths for which this custom license is applicable. If multiple custom parameters
 	// match a file or directory, the parameter with the longest path match is used. If multiple custom parameters
@@ -135,7 +132,8 @@ type CustomHeaderConfig struct {
 	Name string `yaml:"name"`
 
 	// Header is the expected license header. All applicable files are expected to start with this header followed
-	// by a newline.
+	// by a newline. Any occurrences of the string {{YEAR}} is treated specially: when generating a license, the current
+	// year will be substituted for it, and when verifying a license, any 4-digit string will be considered a match.
 	Header string `yaml:"header"`
 
 	// Paths specifies the paths for which this custom license is applicable. If multiple custom parameters match a
@@ -144,10 +142,13 @@ type CustomHeaderConfig struct {
 	Paths []string `yaml:"paths"`
 }
 
-func (c *CustomHeaderConfig) ToParam() CustomHeaderParam {
+func (c *CustomHeaderConfig) ToParam() (CustomHeaderParam, error) {
+	if c.Name == "" {
+		return CustomHeaderParam{}, errors.Errorf("custom header name cannot be blank")
+	}
 	return CustomHeaderParam{
 		Name:         c.Name,
-		Header:       c.Header,
+		Licenser:     NewLicenser(c.Header),
 		IncludePaths: c.Paths,
-	}
+	}, nil
 }
