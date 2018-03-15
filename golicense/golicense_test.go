@@ -15,10 +15,12 @@
 package golicense_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/nmiyake/pkg/dirs"
 	"github.com/nmiyake/pkg/gofiles"
@@ -53,7 +55,7 @@ func TestLicenseFiles(t *testing.T) {
 		{
 			name: "license applied to Go files",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -79,9 +81,37 @@ package bar`,
 			},
 		},
 		{
+			name: "license substitutes current year in placeholder",
+			projectParam: golicense.ProjectParam{
+				Licenser: golicense.NewLicenser(`// Copyright {{YEAR}} Palantir Technologies, Inc.`),
+			},
+			goFiles: []gofiles.GoFileSpec{
+				{
+					RelPath: "foo.go",
+					Src:     `package foo`,
+				},
+				{
+					RelPath: "bar/bar.go",
+					Src: `// Original comment
+package bar`,
+				},
+			},
+			wantModified: []string{
+				"bar/bar.go",
+				"foo.go",
+			},
+			wantContent: map[string]string{
+				"foo.go": fmt.Sprintf(`// Copyright %d Palantir Technologies, Inc.
+package foo`, time.Now().Year()),
+				"bar/bar.go": fmt.Sprintf(`// Copyright %d Palantir Technologies, Inc.
+// Original comment
+package bar`, time.Now().Year()),
+			},
+		},
+		{
 			name: "license not applied to non-Go files",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			nonGoFiles: map[string]string{
 				"foo.txt": `package foo`,
@@ -93,8 +123,8 @@ package bar`,
 		{
 			name: "license not applied to excluded files",
 			projectParam: golicense.ProjectParam{
-				Header:  `// Copyright 2016 Palantir Technologies, Inc.`,
-				Exclude: matcher.Name("foo.go"),
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
+				Exclude:  matcher.Name("foo.go"),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -120,7 +150,7 @@ package bar`,
 		{
 			name: "license not re-applied to files that already have license",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -148,16 +178,16 @@ package bar`,
 		{
 			name: "custom license applied to files that match custom matchers",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 				CustomHeaders: []golicense.CustomHeaderParam{
 					{
 						Name:         "Custom Co.",
-						Header:       "// Copyright 2016 Custom Co.",
+						Licenser:     golicense.NewLicenser("// Copyright 2016 Custom Co."),
 						IncludePaths: []string{"bar/bar.go"},
 					},
 					{
 						Name:         "Baz",
-						Header:       "// Copyright 2006 Legacy Inc.",
+						Licenser:     golicense.NewLicenser("// Copyright 2006 Legacy Inc."),
 						IncludePaths: []string{"baz/baz.go"},
 					},
 				},
@@ -193,16 +223,16 @@ package baz`,
 		{
 			name: "custom matchers match hierarchically",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 				CustomHeaders: []golicense.CustomHeaderParam{
 					{
 						Name:         "Custom Co.",
-						Header:       "// Copyright 2016 Custom Co.",
+						Licenser:     golicense.NewLicenser("// Copyright 2016 Custom Co."),
 						IncludePaths: []string{"bar"},
 					},
 					{
-						Name:   "Baz",
-						Header: "// Copyright 2006 Legacy Inc.",
+						Name:     "Baz",
+						Licenser: golicense.NewLicenser("// Copyright 2006 Legacy Inc."),
 						IncludePaths: []string{
 							"bar/baz.go",
 							"bar/subdir",
@@ -296,7 +326,7 @@ func TestUnlicenseFiles(t *testing.T) {
 		{
 			name: "unlicense applied to Go files",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -322,9 +352,37 @@ package bar`,
 			},
 		},
 		{
+			name: "unlicense applied to Go files with year placeholder",
+			projectParam: golicense.ProjectParam{
+				Licenser: golicense.NewLicenser(`// Copyright {{YEAR}} Palantir Technologies, Inc.`),
+			},
+			goFiles: []gofiles.GoFileSpec{
+				{
+					RelPath: "foo.go",
+					Src: `// Copyright 2018 Palantir Technologies, Inc.
+package foo`,
+				},
+				{
+					RelPath: "bar/bar.go",
+					Src: `// Copyright 2016 Palantir Technologies, Inc.
+// Original comment
+package bar`,
+				},
+			},
+			wantModified: []string{
+				"bar/bar.go",
+				"foo.go",
+			},
+			wantContent: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Original comment
+package bar`,
+			},
+		},
+		{
 			name: "unlicense not applied to non-Go files",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			nonGoFiles: map[string]string{
 				"foo.txt": `// Copyright 2016 Palantir Technologies, Inc.
@@ -338,8 +396,8 @@ package foo`,
 		{
 			name: "unlicense not applied to excluded files",
 			projectParam: golicense.ProjectParam{
-				Header:  `// Copyright 2016 Palantir Technologies, Inc.`,
-				Exclude: matcher.Name("foo.go"),
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
+				Exclude:  matcher.Name("foo.go"),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -367,7 +425,7 @@ package bar`,
 		{
 			name: "unlicense not re-applied to files that already do not have license",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
 			goFiles: []gofiles.GoFileSpec{
 				{
@@ -393,16 +451,16 @@ package bar`,
 		{
 			name: "custom license removed from files that match custom matchers",
 			projectParam: golicense.ProjectParam{
-				Header: `// Copyright 2016 Palantir Technologies, Inc.`,
+				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 				CustomHeaders: []golicense.CustomHeaderParam{
 					{
 						Name:         "Custom Co.",
-						Header:       "// Copyright 2016 Custom Co.",
+						Licenser:     golicense.NewLicenser("// Copyright 2016 Custom Co."),
 						IncludePaths: []string{"bar/bar.go"},
 					},
 					{
 						Name:         "Baz",
-						Header:       "// Copyright 2006 Legacy Inc.",
+						Licenser:     golicense.NewLicenser("// Copyright 2006 Legacy Inc."),
 						IncludePaths: []string{"baz/baz.go"},
 					},
 				},
@@ -482,7 +540,7 @@ func TestValidateCustomLicenseParams(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "custom header entries have blank names: [{Name: Header:// Header IncludePaths:[]}]",
+			wantErr: "custom header name cannot be blank",
 		},
 		{
 			name: "non-unique custom configuration names invalid",
@@ -500,7 +558,7 @@ func TestValidateCustomLicenseParams(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "multiple custom header entries have the same name:\n\tfoo: [{Name:foo Header:// Header IncludePaths:[]} {Name:foo Header:// Header IncludePaths:[]}]",
+			wantErr: "custom header(s) defined multiple times: [foo]",
 		},
 		{
 			name: "custom configurations with same paths invalid",

@@ -22,6 +22,7 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/nmiyake/pkg/dirs"
 	"github.com/nmiyake/pkg/gofiles"
@@ -49,7 +50,7 @@ func TestLicense(t *testing.T) {
 
 	const licenseYML = `header: |
   /*
-  Copyright 2016 Palantir Technologies, Inc.
+  Copyright {{YEAR}} Palantir Technologies, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -86,8 +87,8 @@ func TestLicense(t *testing.T) {
 	files, err := gofiles.Write(projectDir, specs)
 	require.NoError(t, err)
 
-	want := `/*
-Copyright 2016 Palantir Technologies, Inc.
+	want := fmt.Sprintf(`/*
+Copyright %d Palantir Technologies, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -102,7 +103,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package foo`
+package foo`, time.Now().Year())
 
 	outputBuf := &bytes.Buffer{}
 	runPluginCleanup, err := pluginapitester.RunPlugin(pluginPath, nil, "license", nil, projectDir, false, outputBuf)
@@ -129,7 +130,7 @@ func TestLicenseVerify(t *testing.T) {
 
 	const licenseYML = `header: |
   /*
-  Copyright 2016 Palantir Technologies, Inc.
+  Copyright {{YEAR}} Palantir Technologies, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.

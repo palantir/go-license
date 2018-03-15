@@ -19,12 +19,78 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/palantir/pkg/matcher"
 	"github.com/pkg/errors"
 )
+
+type Licenser interface {
+	// Add adds the license to the provided content.
+	Add(content string) string
+	// Remove removes the license to the provided content.
+	Remove(content string) string
+	// Matches returns true if the provided content starts with the license in this Licenser. This is not necessarily
+	// a literal prefix match of LicenseHeader (because any year may match).
+	Matches(content string) bool
+	// Empty returns true if no license header exists.
+	Empty() bool
+}
+
+type licenserImpl struct {
+	// literal license to add for new files
+	newLicenseHeader string
+	// regular expression that matches the license (if nil, the literal content of newLicenseHeader is used)
+	matchRegexp *regexp.Regexp
+}
+
+func (l *licenserImpl) Add(content string) string {
+	return l.newLicenseHeader + "\n" + content
+}
+
+func (l *licenserImpl) Remove(content string) string {
+	if l.matchRegexp == nil {
+		return strings.TrimPrefix(content, l.newLicenseHeader+"\n")
+	}
+	matchLoc := l.matchRegexp.FindStringIndex(content)
+	return content[matchLoc[1]:]
+}
+
+func (l *licenserImpl) Matches(content string) bool {
+	if l.matchRegexp == nil {
+		return strings.HasPrefix(content, l.newLicenseHeader+"\n")
+	}
+	matchLoc := l.matchRegexp.FindStringIndex(content)
+	return len(matchLoc) > 0 && matchLoc[0] == 0
+}
+
+func (l *licenserImpl) Empty() bool {
+	return l.newLicenseHeader == "" && l.matchRegexp == nil
+}
+
+func NewLicenser(license string) Licenser {
+	// if special "{{YEAR}}" replacement string is not present, use literal only
+	if !strings.Contains(license, "{{YEAR}}") {
+		return &licenserImpl{
+			newLicenseHeader: license,
+		}
+	}
+
+	// create a regexp that matches the provided literal header and `\d\d\d\d` for `{{YEAR}}` with a final newline
+	parts := strings.Split(license, "{{YEAR}}")
+	for i, part := range parts {
+		parts[i] = regexp.QuoteMeta(part)
+	}
+
+	return &licenserImpl{
+		newLicenseHeader: strings.Replace(license, "{{YEAR}}", strconv.Itoa(time.Now().Year()), -1),
+		matchRegexp:      regexp.MustCompile(`^` + strings.Join(parts, `\d\d\d\d`) + "\n"),
+	}
+}
 
 func VerifyFiles(files []string, projectParam ProjectParam, stdout io.Writer) (bool, error) {
 	// run verify
@@ -55,9 +121,9 @@ func UnlicenseFiles(files []string, projectParam ProjectParam) ([]string, error)
 	return processFiles(files, projectParam, true, removeLicenseFromFiles)
 }
 
-func processFiles(files []string, projectParam ProjectParam, modify bool, f func(files []string, header string, modify bool) ([]string, error)) ([]string, error) {
+func processFiles(files []string, projectParam ProjectParam, modify bool, f func(files []string, licenser Licenser, modify bool) ([]string, error)) ([]string, error) {
 	// if header and matchers do not exist, return (nothing to check)
-	if projectParam.Header == "" && len(projectParam.CustomHeaders) == 0 {
+	if projectParam.Licenser.Empty() && len(projectParam.CustomHeaders) == 0 {
 		return nil, nil
 	}
 
@@ -96,7 +162,7 @@ func processFiles(files []string, projectParam ProjectParam, modify bool, f func
 
 	// process custom matchers
 	for _, v := range projectParam.CustomHeaders {
-		currModified, err := f(m[v.Name], v.Header, modify)
+		currModified, err := f(m[v.Name], v.Licenser, modify)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to process headers for matcher %s", v.Name)
 		}
@@ -113,7 +179,7 @@ func processFiles(files []string, projectParam ProjectParam, modify bool, f func
 			unprocessedGoFiles = append(unprocessedGoFiles, f)
 		}
 	}
-	currModified, err := f(unprocessedGoFiles, projectParam.Header, modify)
+	currModified, err := f(unprocessedGoFiles, projectParam.Licenser, modify)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to process headers for default *.go matcher")
 	}
@@ -126,11 +192,11 @@ func processFiles(files []string, projectParam ProjectParam, modify bool, f func
 	return modified, nil
 }
 
-func applyLicenseToFiles(files []string, header string, modify bool) ([]string, error) {
+func applyLicenseToFiles(files []string, licenser Licenser, modify bool) ([]string, error) {
 	return visitFiles(files, func(path string, fi os.FileInfo, content string) (bool, error) {
-		if !strings.HasPrefix(content, header+"\n") {
+		if !licenser.Matches(content) {
 			if modify {
-				content = header + "\n" + content
+				content = licenser.Add(content)
 				if err := ioutil.WriteFile(path, []byte(content), fi.Mode()); err != nil {
 					return false, errors.Wrapf(err, "failed to write file %s with new license", path)
 				}
@@ -141,11 +207,11 @@ func applyLicenseToFiles(files []string, header string, modify bool) ([]string, 
 	})
 }
 
-func removeLicenseFromFiles(files []string, header string, modify bool) ([]string, error) {
+func removeLicenseFromFiles(files []string, licenser Licenser, modify bool) ([]string, error) {
 	return visitFiles(files, func(path string, fi os.FileInfo, content string) (bool, error) {
-		if strings.HasPrefix(content, header+"\n") {
+		if licenser.Matches(content) {
 			if modify {
-				content = strings.TrimPrefix(content, header+"\n")
+				content = licenser.Remove(content)
 				if err := ioutil.WriteFile(path, []byte(content), fi.Mode()); err != nil {
 					return false, errors.Wrapf(err, "failed to write file %s with license removed", path)
 				}
