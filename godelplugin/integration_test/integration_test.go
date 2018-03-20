@@ -60,7 +60,7 @@ func TestLicense(t *testing.T) {
 	require.NoError(t, err)
 	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "godel.yml"), []byte(godelYML), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "license.yml"), []byte(licenseYML), 0644)
+	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "license-plugin.yml"), []byte(licenseYML), 0644)
 	require.NoError(t, err)
 
 	specs := []gofiles.GoFileSpec{
@@ -96,7 +96,7 @@ limitations under the License.
 package foo`, time.Now().Year())
 
 	outputBuf := &bytes.Buffer{}
-	runPluginCleanup, err := pluginapitester.RunPlugin(pluginPath, nil, "license", nil, projectDir, false, outputBuf)
+	runPluginCleanup, err := pluginapitester.RunPlugin(pluginapitester.NewPluginProvider(pluginPath), nil, "license", nil, projectDir, false, outputBuf)
 	defer runPluginCleanup()
 	require.NoError(t, err, "Output: %s", outputBuf.String())
 
@@ -139,7 +139,7 @@ func TestLicenseVerify(t *testing.T) {
 	require.NoError(t, err)
 	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "godel.yml"), []byte(godelYML), 0644)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "license.yml"), []byte(licenseYML), 0644)
+	err = ioutil.WriteFile(path.Join(projectDir, "godel", "config", "license-plugin.yml"), []byte(licenseYML), 0644)
 	require.NoError(t, err)
 
 	specs := []gofiles.GoFileSpec{
@@ -177,7 +177,7 @@ package bar`,
 	require.NoError(t, err)
 
 	outputBuf := &bytes.Buffer{}
-	runPluginCleanup, err := pluginapitester.RunPlugin(pluginPath, nil, "license", []string{
+	runPluginCleanup, err := pluginapitester.RunPlugin(pluginapitester.NewPluginProvider(pluginPath), nil, "license", []string{
 		"--verify",
 	}, projectDir, false, outputBuf)
 	defer runPluginCleanup()
