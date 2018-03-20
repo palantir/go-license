@@ -15,18 +15,20 @@
 package pluginapi
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 const usage = "Prints the gödel plugin.Info struct in its JSON-serialized form"
 
-func CobraInfoCmd(info Info) *cobra.Command {
+func CobraInfoCmd(info PluginInfo) *cobra.Command {
 	return &cobra.Command{
-		Use:    InfoCommandName,
+		Use:    PluginInfoCommandName,
 		Short:  usage,
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +37,35 @@ func CobraInfoCmd(info Info) *cobra.Command {
 	}
 }
 
-func infoAction(info Info, w io.Writer) error {
+type UpgradeConfigFn func(cfg []byte) ([]byte, error)
+
+func CobraUpgradeConfigCmd(upgradeFn UpgradeConfigFn) *cobra.Command {
+	return &cobra.Command{
+		Use:   "upgrade-config [base64-config-content]",
+		Short: "Print the upgraded version of the provided config",
+		Long: `Prints the base64-encoded representation of the updated version of the provided configuration, which is
+provided as a base64-encoded string. If the provided configuration is a valid representation of the newest version, it 
+is printed unmodified. If the upgrade fails, exits with a non-0 exit code and prints the error.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return errors.Errorf("input must be exactly one argument, was %d: %v", len(args), args)
+			}
+			cfgBytes, err := base64.StdEncoding.DecodeString(args[0])
+			if err != nil {
+				return errors.Wrapf(err, "failed to decode input as base64")
+			}
+
+			upgradedCfg, err := upgradeFn(cfgBytes)
+			if err != nil {
+				return err
+			}
+			cmd.Print(base64.StdEncoding.EncodeToString(upgradedCfg))
+			return nil
+		},
+	}
+}
+
+func infoAction(info PluginInfo, w io.Writer) error {
 	bytes, err := json.Marshal(info)
 	if err != nil {
 		return fmt.Errorf("failed to marshal plugin info: %v", err)
