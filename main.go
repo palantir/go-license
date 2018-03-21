@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/palantir/pkg/cobracli"
-	"github.com/spf13/cobra"
 
 	"github.com/palantir/go-license/cmd"
 )
@@ -16,17 +15,5 @@ import (
 var debugFlagVal bool
 
 func main() {
-	rootCmd, rootFlagVals := cmd.RootCmd()
-	rootCmd.RunE = func(cobraCmd *cobra.Command, args []string) error {
-		projectCfg, err := cmd.LoadConfig(rootFlagVals.CfgFlagVal)
-		if err != nil {
-			return err
-		}
-		projectParam, err := projectCfg.ToParam()
-		if err != nil {
-			return err
-		}
-		return cmd.RunLicense(*rootFlagVals, args, projectParam, cobraCmd.OutOrStdout())
-	}
-	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(rootCmd, &debugFlagVal, ""))
+	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(cmd.RootCmd, &debugFlagVal, ""))
 }

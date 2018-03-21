@@ -5,66 +5,36 @@
 package cmd
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
+	"github.com/palantir/go-license/commoncmd"
 	"github.com/palantir/go-license/golicense"
 )
 
-type RootFlags struct {
-	CfgFlagVal    string
-	VerifyFlagVal bool
-	RemoveFlagVal bool
-}
-
-// RootCmd returns a cobra.Command that acts as the root command for the "license" program. Sets the usage strings and
-// hooks up common flags and returns a struct that will contain the value of the flags on execution. Note that the
-// command does not have any Run actions defined, so the caller should define the run action.
-func RootCmd() (*cobra.Command, *RootFlags) {
-	rootFlags := &RootFlags{}
-	cmd := &cobra.Command{
-		Use:   "license [flags] [files]",
+var (
+	RootCmd = &cobra.Command{
+		Use:   "go-license [flags] [files]",
 		Short: "Write or verify license headers for Go files",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projectCfg, err := commoncmd.LoadConfig(cfgFlagVal)
+			if err != nil {
+				return err
+			}
+			projectParam, err := projectCfg.ToParam()
+			if err != nil {
+				return err
+			}
+			return golicense.RunLicense(args, projectParam, verifyFlagVal, removeFlagVal, cmd.OutOrStdout())
+		},
 	}
-	cmd.Flags().StringVar(&rootFlags.CfgFlagVal, "config", "", "the YAML configuration file for the license check")
-	cmd.Flags().BoolVar(&rootFlags.VerifyFlagVal, "verify", false, "verify that files have proper license headers applied")
-	cmd.Flags().BoolVar(&rootFlags.RemoveFlagVal, "remove", false, "remove the license header from files (no-op if verify is true)")
-	return cmd, rootFlags
-}
 
-// RunLicense runs the license CLI operation using the provided arguments. Meant to be used as the core of any "Run"
-// actions defined for RootCmd().
-func RunLicense(flags RootFlags, args []string, projectParam golicense.ProjectParam, stdout io.Writer) error {
-	switch {
-	case flags.VerifyFlagVal:
-		if ok, err := golicense.VerifyFiles(args, projectParam, stdout); err != nil {
-			return err
-		} else if !ok {
-			return fmt.Errorf("")
-		}
-		return nil
-	case flags.RemoveFlagVal:
-		_, err := golicense.UnlicenseFiles(args, projectParam)
-		return err
-	default:
-		_, err := golicense.LicenseFiles(args, projectParam)
-		return err
-	}
-}
+	cfgFlagVal    string
+	verifyFlagVal bool
+	removeFlagVal bool
+)
 
-func LoadConfig(cfgFile string) (golicense.ProjectConfig, error) {
-	cfgYML, err := ioutil.ReadFile(cfgFile)
-	if err != nil {
-		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
-	}
-	var cfg golicense.ProjectConfig
-	if err := yaml.Unmarshal(cfgYML, &cfg); err != nil {
-		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to unmarshal configuration as YAML")
-	}
-	return cfg, nil
+func init() {
+	RootCmd.Flags().StringVar(&cfgFlagVal, "config", "", "the YAML configuration file for the license check")
+	RootCmd.Flags().BoolVar(&verifyFlagVal, "verify", false, "verify that files have proper license headers applied")
+	RootCmd.Flags().BoolVar(&removeFlagVal, "remove", false, "remove the license header from files (no-op if verify is true)")
 }
