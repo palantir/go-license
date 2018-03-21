@@ -31,6 +31,25 @@ type Licenser interface {
 	Empty() bool
 }
 
+// RunLicense runs the license operation using the provided arguments.
+func RunLicense(files []string, projectParam ProjectParam, verify, remove bool, stdout io.Writer) error {
+	switch {
+	case verify:
+		if ok, err := VerifyFiles(files, projectParam, stdout); err != nil {
+			return err
+		} else if !ok {
+			return fmt.Errorf("")
+		}
+		return nil
+	case remove:
+		_, err := UnlicenseFiles(files, projectParam)
+		return err
+	default:
+		_, err := LicenseFiles(files, projectParam)
+		return err
+	}
+}
+
 type licenserImpl struct {
 	// literal license to add for new files
 	newLicenseHeader string

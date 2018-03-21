@@ -191,3 +191,67 @@ package bar`,
 
 	assert.Equal(t, fmt.Sprintf("1 file does not have the correct license header:\n\t%s\n", fooRelPath), outputBuf.String())
 }
+
+func TestUpgradeConfig(t *testing.T) {
+	const (
+		godelYML = `exclude:
+  names:
+    - "\\..+"
+    - "vendor"
+  paths:
+    - "godel"
+`
+	)
+
+	pluginPath, err := products.Bin("license-plugin")
+	require.NoError(t, err)
+	pluginProvider := pluginapitester.NewPluginProvider(pluginPath)
+
+	pluginapitester.RunUpgradeConfigTest(t,
+		pluginProvider,
+		nil,
+		[]pluginapitester.UpgradeConfigTestCase{
+			{
+				Name: "generate configuration is unmodified",
+				ConfigFiles: map[string]string{
+					"godel/config/godel.yml": godelYML,
+					"godel/config/license-plugin.yml": `
+header: |
+  // Copyright 2016 Palantir Technologies, Inc.
+  //
+  // License content.
+
+custom-headers:
+  # comment in YAML
+  - name: subproject
+    header: |
+      // Copyright 2016 Palantir Technologies, Inc. All rights reserved.
+      // Subproject license.
+
+    paths:
+      - subprojectDir
+`,
+				},
+				WantOutput: "",
+				WantFiles: map[string]string{
+					"godel/config/license-plugin.yml": `
+header: |
+  // Copyright 2016 Palantir Technologies, Inc.
+  //
+  // License content.
+
+custom-headers:
+  # comment in YAML
+  - name: subproject
+    header: |
+      // Copyright 2016 Palantir Technologies, Inc. All rights reserved.
+      // Subproject license.
+
+    paths:
+      - subprojectDir
+`,
+				},
+			},
+		},
+	)
+}

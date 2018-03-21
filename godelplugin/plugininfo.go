@@ -24,10 +24,14 @@ var pluginInfo = pluginapi.MustNewPluginInfo(
 	pluginapi.PluginInfoTaskInfo(
 		"license",
 		"Run license task",
+		pluginapi.TaskInfoCommand("run"),
 		pluginapi.TaskInfoVerifyOptions(pluginapi.NewVerifyOptions(
 			pluginapi.VerifyOptionsOrdering(intVar(verifyorder.License)),
 			pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
 		)),
+	),
+	pluginapi.PluginInfoUpgradeConfigTaskInfo(
+		pluginapi.UpgradeConfigTaskInfoCommand("upgrade-config"),
 	),
 )
 

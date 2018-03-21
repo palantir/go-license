@@ -1,0 +1,32 @@
+// Copyright (c) 2016 Palantir Technologies Inc. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+package commoncmd
+
+import (
+	"io/ioutil"
+
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+
+	"github.com/palantir/go-license/golicense"
+)
+
+func LoadConfig(cfgFile string) (golicense.ProjectConfig, error) {
+	cfgYML, err := ioutil.ReadFile(cfgFile)
+	if err != nil {
+		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
+	}
+
+	upgradedBytes, err := UpgradeConfig(cfgYML)
+	if err != nil {
+		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
+	}
+
+	var cfg golicense.ProjectConfig
+	if err := yaml.Unmarshal(upgradedBytes, &cfg); err != nil {
+		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to unmarshal configuration as YAML")
+	}
+	return cfg, nil
+}
