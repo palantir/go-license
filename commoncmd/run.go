@@ -10,23 +10,23 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
-	"github.com/palantir/go-license/golicense"
+	"github.com/palantir/go-license/golicense/config"
 )
 
-func LoadConfig(cfgFile string) (golicense.ProjectConfig, error) {
+func LoadConfig(cfgFile string) (config.ProjectConfig, error) {
 	cfgYML, err := ioutil.ReadFile(cfgFile)
 	if err != nil {
-		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
+		return config.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
 	}
 
-	upgradedBytes, err := UpgradeConfig(cfgYML)
+	upgradedBytes, err := config.UpgradeConfig(cfgYML)
 	if err != nil {
-		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
+		return config.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
 	}
 
-	var cfg golicense.ProjectConfig
+	var cfg config.ProjectConfig
 	if err := yaml.Unmarshal(upgradedBytes, &cfg); err != nil {
-		return golicense.ProjectConfig{}, errors.Wrapf(err, "failed to unmarshal configuration as YAML")
+		return config.ProjectConfig{}, errors.Wrapf(err, "failed to unmarshal configuration as YAML")
 	}
 	return cfg, nil
 }
