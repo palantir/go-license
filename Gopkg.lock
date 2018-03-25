@@ -38,10 +38,10 @@
   version = "v0.0.2"
 
 [[projects]]
-  name = "github.com/nmiyake/archiver"
+  name = "github.com/mholt/archiver"
   packages = ["."]
-  revision = "a075791974ee7d363104fde72b5e009515cc0def"
-  version = "v1.1.1"
+  revision = "cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006"
+  version = "v2.0"
 
 [[projects]]
   branch = "develop"
@@ -59,7 +59,7 @@
   branch = "master"
   name = "github.com/palantir/godel"
   packages = ["framework/artifactresolver","framework/builtintasks","framework/builtintasks/checkpath","framework/builtintasks/githooks","framework/builtintasks/githubwiki","framework/builtintasks/idea","framework/builtintasks/installupdate","framework/builtintasks/installupdate/layout","framework/builtintasks/packages","framework/godel","framework/godellauncher","framework/internal/legacyplugins","framework/internal/pathsinternal","framework/pluginapi","framework/pluginapitester","framework/plugins","framework/verifyorder","godelgetter","pkg/osarch","pkg/products","pkg/versionedconfig"]
-  revision = "558312ec532ab8ec819ebc20614f67b69656b448"
+  revision = "9a68fc561092131fdf43a4a15d1ae920acf391e2"
 
 [[projects]]
   branch = "master"
@@ -102,6 +102,12 @@
   name = "github.com/termie/go-shutil"
   packages = ["."]
   revision = "bcacb06fecaeec8dc42af03c87c6949f4a05c74c"
+
+[[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [".","internal/hash","internal/xlog","lzma"]
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
 
 [[projects]]
   branch = "master"

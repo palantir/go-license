@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/palantir/go-license/golicense"
+	"github.com/palantir/go-license/golicense/config"
 )
 
 func TestLicenseFiles(t *testing.T) {
@@ -513,29 +514,29 @@ package baz`,
 func TestValidateCustomLicenseParams(t *testing.T) {
 	for i, currCase := range []struct {
 		name          string
-		projectConfig golicense.ProjectConfig
+		projectConfig config.ProjectConfig
 		wantErr       string
 	}{
 		{
 			name:          "empty configuration valid",
-			projectConfig: golicense.ProjectConfig{},
+			projectConfig: config.ProjectConfig{},
 		},
 		{
 			name: "empty custom configuration name invalid",
-			projectConfig: golicense.ProjectConfig{
-				CustomHeaders: []golicense.CustomHeaderConfig{
+			projectConfig: config.ProjectConfig{
+				CustomHeaders: config.ToCustomHeaderConfigs([]config.CustomHeaderConfig{
 					{
 						Header: "// Header",
 						Paths:  []string{""},
 					},
-				},
+				}),
 			},
 			wantErr: "custom header name cannot be blank",
 		},
 		{
 			name: "non-unique custom configuration names invalid",
-			projectConfig: golicense.ProjectConfig{
-				CustomHeaders: []golicense.CustomHeaderConfig{
+			projectConfig: config.ProjectConfig{
+				CustomHeaders: config.ToCustomHeaderConfigs([]config.CustomHeaderConfig{
 					{
 						Name:   "foo",
 						Header: "// Header",
@@ -546,14 +547,14 @@ func TestValidateCustomLicenseParams(t *testing.T) {
 						Header: "// Header",
 						Paths:  []string{""},
 					},
-				},
+				}),
 			},
 			wantErr: "custom header(s) defined multiple times: [foo]",
 		},
 		{
 			name: "custom configurations with same paths invalid",
-			projectConfig: golicense.ProjectConfig{
-				CustomHeaders: []golicense.CustomHeaderConfig{
+			projectConfig: config.ProjectConfig{
+				CustomHeaders: config.ToCustomHeaderConfigs([]config.CustomHeaderConfig{
 					{
 						Name:   "foo",
 						Header: "// Header",
@@ -584,7 +585,7 @@ func TestValidateCustomLicenseParams(t *testing.T) {
 							"bar",
 						},
 					},
-				},
+				}),
 			},
 			wantErr: "the same path is defined by multiple custom header entries:\n\tbar: foo, bar, collides",
 		},
