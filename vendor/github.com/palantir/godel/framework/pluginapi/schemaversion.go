@@ -12,24 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package godellauncher
+package pluginapi
 
-import (
-	"io"
-)
-
-func BuiltinUpgradeConfigTasks() []UpgradeConfigTask {
-	return []UpgradeConfigTask{
-		upgradeGodelConfigTask(),
-	}
-}
-
-func upgradeGodelConfigTask() UpgradeConfigTask {
-	return UpgradeConfigTask{
-		ID:         "com.palantir.godel:godel",
-		ConfigFile: "godel.yml",
-		RunImpl: func(t *UpgradeConfigTask, global GlobalConfig, configBytes []byte, stdout io.Writer) ([]byte, error) {
-			return UpgradeGodelConfig(configBytes)
-		},
-	}
+type SchemaVersion struct {
+	PluginSchemaVersionVar string `json:"pluginSchemaVersion"`
 }

@@ -5,8 +5,7 @@
 package cmd
 
 import (
-	"path"
-
+	godelconfig "github.com/palantir/godel/framework/godel/config"
 	"github.com/palantir/godel/framework/godellauncher"
 	"github.com/palantir/pkg/matcher"
 	"github.com/spf13/cobra"
@@ -24,7 +23,7 @@ var (
 				return err
 			}
 			if godelConfigFileFlagVal != "" {
-				cfgVal, err := godellauncher.ReadGodelConfig(path.Dir(godelConfigFileFlagVal))
+				cfgVal, err := godelconfig.ReadGodelConfigFromFile(godelConfigFileFlagVal)
 				if err != nil {
 					return err
 				}

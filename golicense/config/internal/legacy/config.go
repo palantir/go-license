@@ -11,9 +11,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type GoLicense struct {
+type GoLicenseWithLegacy struct {
 	versionedconfig.ConfigWithLegacy `yaml:",inline"`
+	GoLicense                        `yaml:",inline"`
+}
 
+type GoLicense struct {
 	// Header is the expected license header. All applicable files are expected to start with this header followed
 	// by a newline.
 	Header string `yaml:"header"`
@@ -42,10 +45,18 @@ type License struct {
 }
 
 func UpgradeConfig(cfgBytes []byte) ([]byte, error) {
-	var legacyCfg GoLicense
+	var legacyCfg GoLicenseWithLegacy
 	if err := yaml.UnmarshalStrict(cfgBytes, &legacyCfg); err != nil {
 		return nil, errors.Wrapf(err, "failed to unmarshal license-plugin legacy configuration")
 	}
-	// legacy configuration is completely compatible with v0 configuration
-	return cfgBytes, nil
+	// optimization: if input bytes start with the legacy configuration key, trim it to get a valid v0 configuration
+	if trimmed, ok := versionedconfig.TrimLegacyPrefix(cfgBytes); ok {
+		return trimmed, nil
+	}
+	// otherwise, marshal just the GoLicense portion of the configuration, which is fully compatible with v0
+	upgradedBytes, err := yaml.Marshal(legacyCfg.GoLicense)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to marshal dist-sls-asset legacy configuration")
+	}
+	return upgradedBytes, nil
 }

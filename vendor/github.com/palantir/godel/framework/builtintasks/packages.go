@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/palantir/godel/framework/builtintasks/packages"
+	"github.com/palantir/godel/framework/godel/config"
 	"github.com/palantir/godel/framework/godellauncher"
 )
 
@@ -35,11 +36,7 @@ func PackagesTask() godellauncher.Task {
 				return err
 			}
 
-			cfgDir, err := godellauncher.ConfigDirPath(projectDir)
-			if err != nil {
-				return err
-			}
-			cfg, err := godellauncher.ReadGodelConfig(cfgDir)
+			cfg, err := config.ReadGodelConfigFromProjectDir(projectDir)
 			if err != nil {
 				return err
 			}

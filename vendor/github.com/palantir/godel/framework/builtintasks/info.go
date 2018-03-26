@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
+	"github.com/palantir/godel/framework/godel/config"
 	"github.com/palantir/godel/framework/godellauncher"
 )
 
@@ -36,13 +37,13 @@ func InfoTask() godellauncher.Task {
 			if err != nil {
 				return err
 			}
-			godelCfg, err := godellauncher.ReadGodelConfigFromProjectDir(projectDir)
+			godelCfg, err := config.ReadGodelConfigFromProjectDir(projectDir)
 			if err != nil {
 				return err
 			}
-			bytes, err := yaml.Marshal(godellauncher.DefaultTasksPluginsConfig(godelCfg.DefaultTasks))
+			bytes, err := yaml.Marshal(godelCfg.DefaultTasks)
 			if err != nil {
-				return errors.Wrapf(err, "failed to marshal default task config to JSON")
+				return errors.Wrapf(err, "failed to marshal default task configuration")
 			}
 			cmd.Print(string(bytes))
 			return nil
