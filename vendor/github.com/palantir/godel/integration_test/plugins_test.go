@@ -32,8 +32,9 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/palantir/godel/framework/builtintasks/installupdate/layout"
+	"github.com/palantir/godel/framework/godel/config"
 	"github.com/palantir/godel/framework/godellauncher"
-	"github.com/palantir/godel/framework/pluginapi"
+	"github.com/palantir/godel/framework/pluginapi/v2/pluginapi"
 	"github.com/palantir/godel/pkg/osarch"
 )
 
@@ -47,7 +48,7 @@ echo $@
 `, pluginapi.PluginInfoCommandName, `%s`)
 
 func TestPlugins(t *testing.T) {
-	pluginName := fmt.Sprintf("tester-integration-%d-%d", time.Now().Unix(), rand.Int())
+	pluginName := fmt.Sprintf("tester-integration-%d-%d-plugin", time.Now().Unix(), rand.Int())
 
 	testProjectDir := setUpGödelTestAndDownload(t, testRootDir, gödelTGZ, version)
 	src := `package main
@@ -61,10 +62,7 @@ func main() {
 	err := ioutil.WriteFile(path.Join(testProjectDir, "main.go"), []byte(src), 0644)
 	require.NoError(t, err)
 
-	cfgDir, err := godellauncher.ConfigDirPath(testProjectDir)
-	require.NoError(t, err)
-
-	cfg, err := godellauncher.ReadGodelConfig(cfgDir)
+	cfg, err := config.ReadGodelConfigFromProjectDir(testProjectDir)
 	require.NoError(t, err)
 
 	cfgContent := fmt.Sprintf(`
@@ -94,9 +92,9 @@ plugins:
 			"echo-task",
 			"Echoes input",
 			pluginapi.TaskInfoCommand("echo"),
-			pluginapi.TaskInfoVerifyOptions(pluginapi.NewVerifyOptions(
+			pluginapi.TaskInfoVerifyOptions(
 				pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
-			)),
+			),
 		),
 	)
 	pluginInfoJSON, err := json.Marshal(pluginInfo)
@@ -111,6 +109,8 @@ plugins:
 	require.NoError(t, err)
 
 	cfgBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	cfgDir, err := godellauncher.ConfigDirPath(testProjectDir)
 	require.NoError(t, err)
 	err = ioutil.WriteFile(path.Join(cfgDir, godellauncher.GodelConfigYML), cfgBytes, 0644)
 	require.NoError(t, err)
@@ -140,7 +140,7 @@ Running echo-task...
 }
 
 func TestPluginsWithAssets(t *testing.T) {
-	pluginName := fmt.Sprintf("tester-integration-%d-%d", time.Now().Unix(), rand.Int())
+	pluginName := fmt.Sprintf("tester-integration-%d-%d-plugin", time.Now().Unix(), rand.Int())
 	assetName := pluginName + "-asset"
 
 	testProjectDir := setUpGödelTestAndDownload(t, testRootDir, gödelTGZ, version)
@@ -155,10 +155,7 @@ func main() {
 	err := ioutil.WriteFile(path.Join(testProjectDir, "main.go"), []byte(src), 0644)
 	require.NoError(t, err)
 
-	cfgDir, err := godellauncher.ConfigDirPath(testProjectDir)
-	require.NoError(t, err)
-
-	cfg, err := godellauncher.ReadGodelConfig(cfgDir)
+	cfg, err := config.ReadGodelConfigFromProjectDir(testProjectDir)
 	require.NoError(t, err)
 
 	cfgContent := fmt.Sprintf(`
@@ -195,9 +192,9 @@ plugins:
 			"echo-task",
 			"Echoes input",
 			pluginapi.TaskInfoCommand("echo"),
-			pluginapi.TaskInfoVerifyOptions(pluginapi.NewVerifyOptions(
+			pluginapi.TaskInfoVerifyOptions(
 				pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
-			)),
+			),
 		),
 	)
 	pluginInfoJSON, err := json.Marshal(pluginInfo)
@@ -220,6 +217,8 @@ plugins:
 	require.NoError(t, err)
 
 	cfgBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	cfgDir, err := godellauncher.ConfigDirPath(testProjectDir)
 	require.NoError(t, err)
 	err = ioutil.WriteFile(path.Join(cfgDir, godellauncher.GodelConfigYML), cfgBytes, 0644)
 	require.NoError(t, err)

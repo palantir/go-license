@@ -2,15 +2,15 @@
 // Use of this source code is governed by the Apache License, Version 2.0
 // that can be found in the LICENSE file.
 
-package main
+package cmd
 
 import (
-	"github.com/palantir/godel/framework/pluginapi"
+	"github.com/palantir/godel/framework/pluginapi/v2/pluginapi"
 	"github.com/palantir/godel/framework/verifyorder"
 	"github.com/palantir/pkg/cobracli"
 )
 
-var pluginInfo = pluginapi.MustNewPluginInfo(
+var PluginInfo = pluginapi.MustNewPluginInfo(
 	"com.palantir.go-license",
 	"license-plugin",
 	cobracli.Version,
@@ -25,13 +25,14 @@ var pluginInfo = pluginapi.MustNewPluginInfo(
 		"license",
 		"Run license task",
 		pluginapi.TaskInfoCommand("run"),
-		pluginapi.TaskInfoVerifyOptions(pluginapi.NewVerifyOptions(
+		pluginapi.TaskInfoVerifyOptions(
 			pluginapi.VerifyOptionsOrdering(intVar(verifyorder.License)),
 			pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
-		)),
+		),
 	),
 	pluginapi.PluginInfoUpgradeConfigTaskInfo(
 		pluginapi.UpgradeConfigTaskInfoCommand("upgrade-config"),
+		pluginapi.LegacyConfigFile("license.yml"),
 	),
 )
 

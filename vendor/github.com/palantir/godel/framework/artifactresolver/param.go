@@ -12,9 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package godelconfig
+package artifactresolver
 
-type VersionedConfig struct {
-	// Version of the current configuration.
-	Version int `yaml:"version"`
+import (
+	"fmt"
+
+	"github.com/palantir/godel/pkg/osarch"
+)
+
+type LocatorWithResolverParam struct {
+	LocatorWithChecksums LocatorParam
+	Resolver             Resolver
+}
+
+type LocatorParam struct {
+	Locator
+	Checksums map[osarch.OSArch]string
+}
+
+type Locator struct {
+	Group   string
+	Product string
+	Version string
+}
+
+func (l Locator) String() string {
+	return fmt.Sprintf("%s:%s:%s", l.Group, l.Product, l.Version)
 }

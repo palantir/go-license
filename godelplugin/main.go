@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	"github.com/palantir/godel/framework/pluginapi"
+	"github.com/palantir/godel/framework/pluginapi/v2/pluginapi"
 	"github.com/palantir/pkg/cobracli"
 
 	"github.com/palantir/go-license/godelplugin/cmd"
@@ -18,7 +18,7 @@ var (
 )
 
 func main() {
-	if ok := pluginapi.InfoCmd(os.Args, os.Stdout, pluginInfo); ok {
+	if ok := pluginapi.InfoCmd(os.Args, os.Stdout, cmd.PluginInfo); ok {
 		return
 	}
 	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(cmd.RootCmd, &debugFlagVal, ""))

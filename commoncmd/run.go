@@ -6,6 +6,7 @@ package commoncmd
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -15,6 +16,9 @@ import (
 
 func LoadConfig(cfgFile string) (config.ProjectConfig, error) {
 	cfgYML, err := ioutil.ReadFile(cfgFile)
+	if os.IsNotExist(err) {
+		return config.ProjectConfig{}, nil
+	}
 	if err != nil {
 		return config.ProjectConfig{}, errors.Wrapf(err, "failed to read file %s", cfgFile)
 	}
