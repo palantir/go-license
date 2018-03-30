@@ -1,40 +1,45 @@
 Summary
 -------
-The `godel/config/exclude.yml` configuration specifies patterns for paths and names that should be ignored.
+The exclude block in `godel/config/godel.yml` specifies patterns for paths and names that should be ignored.
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-
-([Link](https://github.com/nmiyake/echgo/tree/08752b2ae998c14dd5abb789cebc8f5848f7cf4e))
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
 
 Exclude names/paths
 -------------------
+In the previous step of the tutorial, we updated the `exclude` section of `godel/config/godel.yml` configuration file to
+specify that a generated source file should be excluded from checks. This portion of the tutorial examines the file in
+more detail.
 
-In the previous step of the tutorial, we updated the `godel/config/exclude.yml` configuration file to specify that a
-generated source file should be excluded from checks. This portion of the tutorial examines the file in more detail.
-
-Examine the current state of `godel/config/exclude.yml`:
+Examine the current state of `godel/config/godel.yml`:
 
 ```
-➜ cat godel/config/exclude.yml
-names:
-  - "\\..+"
-  - "vendor"
-paths:
-  - "godel"
-  - "echo/type_string.go"
+➜ cat godel/config/godel.yml
+plugins:
+  resolvers:
+    - "https://palantir.bintray.com/releases/{{GroupPath}}/{{Product}}/{{Version}}/{{Product}}-{{Version}}-{{OS}}-{{Arch}}.tgz"
+  plugins:
+    - locator:
+        id: "com.palantir.go-generate:generate-plugin:1.0.0-rc2"
+exclude:
+  names:
+    - "\\..+"
+    - "vendor"
+  paths:
+    - "godel"
+    - "echo/type_string.go"
 ```
 
 As seen in the previous section, specifying `echo/type_string.go` as an exclude path caused this file to be ignored for
@@ -46,12 +51,19 @@ We can make this approach more general by excluding all files that end in `_stri
 update the configuration:
 
 ```
-➜ echo 'names:
-  - "\\\\..+"
-  - "vendor"
-  - ".+_string.go"
-paths:
-  - "godel"' > godel/config/exclude.yml
+➜ echo 'plugins:
+  resolvers:
+    - "https://palantir.bintray.com/releases/{{GroupPath}}/{{Product}}/{{Version}}/{{Product}}-{{Version}}-{{OS}}-{{Arch}}.tgz"
+  plugins:
+    - locator:
+        id: "com.palantir.go-generate:generate-plugin:1.0.0-rc2"
+exclude:
+  names:
+    - "\\\\..+"
+    - "vendor"
+    - ".+_string.go"
+  paths:
+    - "godel"' > godel/config/godel.yml
 ```
 
 Verify that the `golint` check still succeeds:
@@ -59,53 +71,50 @@ Verify that the `golint` check still succeeds:
 ```
 ➜ ./godelw check golint
 Running golint...
+Finished golint
 ```
 
 Check in the changes:
 
 ```
-➜ git add godel/config/exclude.yml
-➜ git commit -m "Update exclude.yml"
-[master 1982133] Update exclude.yml
+➜ git add godel/config/godel.yml
+➜ git commit -m "Update exclude configuration in godel.yml"
+[master 60994d2] Update exclude configuration in godel.yml
  1 file changed, 1 insertion(+), 1 deletion(-)
 ```
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
-
-([Link](https://github.com/nmiyake/echgo/tree/1982133dbe7c811f1e2d71f4dcc25ff20f84146a))
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 
 Tutorial next step
 ------------------
-
 [Write integration tests](https://github.com/palantir/godel/wiki/Integration-tests)
 
 More
 ----
-
 ### Names, paths and default configuration
-
-`godel/config/exclude.yml` starts with the following defaults:
+`godel/config/godel.yml` starts with the following defaults:
 
 ```yml
-names:
-  - "\\..+"
-  - "vendor"
-paths:
-  - "godel"
+exclude:
+  names:
+    - "\\..+"
+    - "vendor"
+  paths:
+    - "godel"
 ```
 
 The `names` configuration specifies a list of names that should be ignored. The values can be literals or regular

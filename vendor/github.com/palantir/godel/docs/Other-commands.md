@@ -5,31 +5,28 @@ commands.
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 * `docs` contains documentation
 * `.circleci/config.yml` exists
 * Project is tagged as 1.0.0
-* `godelw` is updated to 0.27.0
-
-([Link](https://github.com/nmiyake/echgo/tree/3825f36b06ee50703ad10e01068ceb13e7719acd))
+* `godelw` is updated to the latest version
 
 Other commands
 --------------
-
 The declarative configuration provided by gödel can be used as inputs to other programs or scripts for convenience. For
 example, you may want to run a `go install` on all of the project packages so that the object files are available in
 `$GOPATH/pkg` and any `main` packages are installed. `go install ./...` will often not work on products that vendor
@@ -58,46 +55,44 @@ string used as the version for the `dist` and `publish` tasks):
 
 ```
 ➜ ./godelw project-version
-1.0.0-1-g3825f36
+1.0.0
 ```
 
 `./godelw artifacts` can be invoked with `build` or `dist` (and optionally a list of products) to output the location in
 which the build and distribution artifacts will be generated:
 
 ```
-➜ ./godelw artifacts build echgo
-build/1.0.0-1-g3825f36/darwin-amd64/echgo
-build/1.0.0-1-g3825f36/linux-amd64/echgo
+➜ ./godelw artifacts build echgo2
+out/build/echgo2/1.0.0/darwin-amd64/echgo2
+out/build/echgo2/1.0.0/linux-amd64/echgo2
 ➜ ./godelw artifacts dist
-dist/echgo-1.0.0-1-g3825f36-darwin-amd64.tgz
-dist/echgo-1.0.0-1-g3825f36-linux-amd64.tgz
+out/dist/echgo2/1.0.0/os-arch-bin/echgo2-1.0.0-darwin-amd64.tgz
+out/dist/echgo2/1.0.0/os-arch-bin/echgo2-1.0.0-linux-amd64.tgz
 ```
 
 These commands can be useful to use as inputs to other programs or as part of scripts/CI tasks for a project.
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 * `docs` contains documentation
 * `.circleci/config.yml` exists
 * Project is tagged as 1.0.0
-* `godelw` is updated to 0.27.0
-
-([Link](https://github.com/nmiyake/echgo/tree/3825f36b06ee50703ad10e01068ceb13e7719acd))
+* `godelw` is updated to the latest version
 
 Tutorial next step
 ------------------

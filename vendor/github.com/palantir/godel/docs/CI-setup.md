@@ -4,28 +4,25 @@ gödel tasks can be configured to run in a CI environment to verify, build and p
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 * `docs` contains documentation
-
-([Link](https://github.com/nmiyake/echgo/tree/17c7406291096306e92c6f82da2df09388766693))
 
 CI setup
 --------
-
 Now that we have set up a project and a repository, we will configure CI (continuous integration) to verify that all of
 the PRs for our project properly pass verification and so that artifacts are published for releases.
 
@@ -33,95 +30,131 @@ We will use CircleCI to set up CI for this project. Run the following to create 
 
 ```
 ➜ mkdir -p .circleci
-➜ echo 'defaults: &defaults
-  working_directory: /go/src/github.com/nmiyake/echgo
+➜ SRC='defaults: &defaults
+  working_directory: /go/src/PROJECT_PATH
   docker:
-    - image: golang:1.9.1
+    - image: golang:1.10.0
+
+go-version: &go-version
+  run: go version
+
+godel-cache-restore: &godel-cache-restore
+  restore_cache:
+    keys:
+      - godel-cache-{{ checksum "godelw" }}-v1
+
+godel-version: &godel-version
+  run: ./godelw version
+
+godel-cache-save: &godel-cache-save
+  save_cache:
+    key: godel-cache-{{ checksum "godelw" }}-v1
+    paths:
+      - ~/.godel
+
+define-tests-dir: &define-tests-dir
+  run: echo 'export TESTS_DIR=/tmp/test-results' >> $BASH_ENV
+
+mkdir-tests-dir: &mkdir-tests-dir
+  run: mkdir -p "${TESTS_DIR}"
+
+go-install-packages: &go-install-packages
+  run: go install $(./godelw packages)
+
+godelw-verify: &godelw-verify
+  run: ./godelw verify --apply=false --junit-output="$TESTS_DIR/$CIRCLE_PROJECT_REPONAME-tests.xml"
+
+store-test-results: &store-test-results
+  type: test-results-store
+  path: /tmp/test-results
+
+store-artifacts: &store-artifacts
+  type: artifacts-store
+  path: /tmp/test-results
+  destination: test-results
 
 version: 2
 jobs:
-  build:
+  verify:
     <<: *defaults
     steps:
-      - type: checkout
-      - type: cache-restore
-        key: godel-{{ checksum "godelw" }}
-      - type: run
-        name: "Verify godel version"
-        command: ./godelw version
-      - type: cache-save
-        key: godel-{{ checksum "godelw" }}
-        paths:
-          - /root/.godel
-      - type: run
-        name: "Verify Go version"
-        command: go version
-      - type: run
-        name: "Install project packages"
-        command: go install $(./godelw packages)
-      - type: run
-        name: "Create test output directory"
-        command: mkdir -p /tmp/test-results/"${CIRCLE_PROJECT_REPONAME}"
-      - type: run
-        name: "Run godel verification"
-        command: ./godelw verify --apply=false --junit-output="/tmp/test-results/${CIRCLE_PROJECT_REPONAME}-tests.xml"
-      - type: test-results-store
-        path: /tmp/test-results
-      - type: artifacts-store
-        path: /tmp/test-results
-        destination: test-results
-      - type: run
-        name: "Create distribution"
-        command: ./godelw dist
-      - type: artifacts-store
-        path: /go/src/github.com/nmiyake/echgo/dist
+      - checkout
+      - *go-version
+      - *godel-cache-restore
+      - *godel-version
+      - *godel-cache-save
+      - *define-tests-dir
+      - *mkdir-tests-dir
+      - *go-install-packages
+      - *godelw-verify
+      - *store-test-results
+      - *store-artifacts
+  dist:
+    <<: *defaults
+    steps:
+      - checkout
+      - *go-version
+      - *godel-cache-restore
+      - *godel-version
+      - *godel-cache-save
+      - run: ./godelw dist
+      - save_cache:
+          key: out-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ .Environment.CIRCLE_SHA1 }}-v1
+          paths:
+            - out
   wiki:
     <<: *defaults
     steps:
-      - type: checkout
-      - type: cache-restore
-        key: godel-{{ checksum "godelw" }}
-      - type: run
-        name: "Verify godel version"
-        command: ./godelw version
+      - checkout
+      - *go-version
+      - *godel-cache-restore
+      - *godel-version
+      - *godel-cache-save
       - type: run
         name: "Update GitHub Wiki on master branch"
-        command: ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo.wiki.git
+        command: ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo2.wiki.git
   publish:
     <<: *defaults
     steps:
-      - type: checkout
-      - type: cache-restore
-        key: godel-{{ checksum "godelw" }}
-      - type: run
-        name: "Verify godel version"
-        command: ./godelw version
-      - type: run
-        name: "Publish"
-        command: ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo
+      - checkout
+      - *go-version
+      - *godel-cache-restore
+      - *godel-version
+      - *godel-cache-save
+      - restore_cache:
+          keys:
+            - out-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ .Environment.CIRCLE_SHA1 }}-v1
+      - run: ./godelw publish github --api-url https://api.github.com --user nmiyake --token $GITHUB_TOKEN --owner nmiyake --repository echgo2
+
+requires_products: &requires_products
+  - verify
+  - dist
+
+all-tags-filter: &all-tags-filter
+  filters:
+    tags:
+      only: /.*/
 
 workflows:
   version: 2
-  build-deploy:
+  build-publish:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
+      - verify:
+          <<: *all-tags-filter
+      - dist:
+          <<: *all-tags-filter
       - wiki:
-          requires:
-            - build
+          requires: *requires_products
           filters:
             branches:
               only: master
       - publish:
-          requires:
-            - build
+          requires: *requires_products
           filters:
             tags:
-              only: /^[0-9]+(\.[0-9]+)+(-rc[0-9]+)?$/
+              only: /^v?[0-9]+(\.[0-9]+)+(-rc[0-9]+)?(-alpha[0-9]+)?$/
             branches:
-              ignore: /.*/' > .circleci/config.yml
+              ignore: /.*/' && SRC=${SRC//PROJECT_PATH/$PROJECT_PATH} && echo "$SRC" > .circleci/config.yml
 ```
 
 The primary tasks performed by this CI are the following:
@@ -140,8 +173,8 @@ Commit the changes to the repository by running the following:
 ```
 ➜ git add .circleci
 ➜ git commit -m "Add CircleCI configuration"
-[master 25d27eb] Add CircleCI configuration
- 1 file changed, 89 insertions(+)
+[master 0a8c6f4] Add CircleCI configuration
+ 1 file changed, 24 insertions(+)
  create mode 100644 .circleci/config.yml
 ```
 
@@ -152,18 +185,24 @@ build and publishes the artifacts:
 
 ```
 ➜ git push origin master
-Counting objects: 4, done.
+Counting objects: 73, done.
 Delta compression using up to 8 threads.
-Compressing objects: 100% (3/3), done.
-Writing objects: 100% (4/4), 1.02 KiB | 0 bytes/s, done.
-Total 4 (delta 1), reused 0 (delta 0)
-remote: Resolving deltas: 100% (1/1), completed with 1 local object.
-To git@github.com:nmiyake/echgo.git
-   17c7406..25d27eb  master -> master
+Compressing objects: 100% (56/56), done.
+Writing objects: 100% (73/73), 21.39 KiB | 0 bytes/s, done.
+Total 73 (delta 20), reused 0 (delta 0)
+remote: Resolving deltas: 100% (20/20), completed with 1 local object.
+To git@github.com:nmiyake/echgo2.git
+   1d3a164..3c292d5  master -> master
+```
+
+```
 ➜ git tag 1.0.0
+```
+
+```
 ➜ git push origin --tags
 Total 0 (delta 0), reused 0 (delta 0)
-To git@github.com:nmiyake/echgo.git
+To git@github.com:nmiyake/echgo2.git
  * [new tag]         1.0.0 -> 1.0.0
 ```
 
@@ -171,40 +210,36 @@ Although this example was for CircleCI 2.0, the general principles/steps should 
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 * `docs` contains documentation
 * `.circleci/config.yml` exists
 * Project is tagged as 1.0.0
 
-([Link](https://github.com/nmiyake/echgo/tree/25d27eb1763e55f228282594691798ca0c2bbe28))
-
 Tutorial next step
 ------------------
-[Update gödel](https://github.com/palantir/godel/wiki/Update-g%C3%B6del)
+[Update gödel](https://github.com/palantir/godel/wiki/Update-godel)
 
 More
 ----
-
 ### CircleCI 2.0 without workflows
-
 ```yaml
 jobs:
   build:
-    working_directory: /go/src/github.com/nmiyake/echgo
+    working_directory: /go/src/github.com/nmiyake/echgo2
     docker:
       - image: golang:1.9.1
     steps:
@@ -239,13 +274,13 @@ jobs:
         name: "Create distribution"
         command: ./godelw dist
       - type: artifacts-store
-        path: /go/src/github.com/nmiyake/echgo/dist
+        path: /go/src/github.com/nmiyake/echgo2/dist
       - type: deploy
         name: "Update GitHub Wiki on master branch"
         command: |
           set -eu
           if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo.wiki.git
+            ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo2.wiki.git
           else
             echo "Not master branch: skipping wiki publish"
           fi
@@ -255,19 +290,18 @@ jobs:
           set -eu
           TAG=$(./godelw project-version)
           if [[ $TAG =~ ^[0-9]+(\.[0-9]+)+(-rc[0-9]+)?$ ]]; then
-            ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo
+            ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo2
           else
             echo "Not a release tag: skipping publish"
           fi
 ```
 
 ### CircleCI 2.0 with workflows
-
 ```yaml
 defaults: &defaults
-  working_directory: /go/src/github.com/nmiyake/echgo
+  working_directory: /go/src/github.com/nmiyake/echgo2
   docker:
-    - image: golang:1.9.1
+    - image: golang:1.10.0
 
 version: 2
 jobs:
@@ -305,7 +339,7 @@ jobs:
         name: "Create distribution"
         command: ./godelw dist
       - type: artifacts-store
-        path: /go/src/github.com/nmiyake/echgo/dist
+        path: /go/src/github.com/nmiyake/echgo2/dist
   wiki:
     <<: *defaults
     steps:
@@ -317,7 +351,7 @@ jobs:
         command: ./godelw version
       - type: run
         name: "Update GitHub Wiki on master branch"
-        command: ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo.wiki.git
+        command: ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo2.wiki.git
   publish:
     <<: *defaults
     steps:
@@ -329,7 +363,7 @@ jobs:
         command: ./godelw version
       - type: run
         name: "Publish"
-        command: ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo
+        command: ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo2
 
 workflows:
   version: 2
@@ -350,17 +384,16 @@ workflows:
             - build
           filters:
             tags:
-              only: /^[0-9]+(\.[0-9]+)+(-rc[0-9]+)?$/
+              only: /^v?[0-9]+(\.[0-9]+)+(-rc[0-9]+)?$/
             branches:
               ignore: /.*/
 ```
 
 ### CircleCI 1.0
-
 ```yaml
 machine:
   environment:
-    GODIST: "go1.9.1.linux-amd64.tar.gz"
+    GODIST: "go1.10.linux-amd64.tar.gz"
     GOPATH: "$HOME/.go_workspace"
     IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
     GO_PROJECT_SRC_PATH: "$GOPATH/src/$IMPORT_PATH"
@@ -406,9 +439,9 @@ deployment:
   master:
     branch: master
     commands:
-      - cd "$GO_PROJECT_SRC_PATH" && ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo.wiki.git
+      - cd "$GO_PROJECT_SRC_PATH" && ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo2.wiki.git
   release:
-    tag: /[0-9]+(\.[0-9]+)+(-rc[0-9]+)?/
+    tag: /v?[0-9]+(\.[0-9]+)+(-rc[0-9]+)?/
     commands:
-      - cd "$GO_PROJECT_SRC_PATH" && ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo
+      - cd "$GO_PROJECT_SRC_PATH" && ./godelw publish github --url https://api.github.com --user nmiyake --password $GITHUB_TOKEN --owner nmiyake --repository echgo2
 ```
