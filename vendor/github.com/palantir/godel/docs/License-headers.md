@@ -4,22 +4,18 @@ Summary
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
-
-([Link](https://github.com/nmiyake/echgo/tree/55182ff79dd28048782fb240920d6f2d90b453da))
 
 License
 -------
-
 Many open-source projects require specific license headers to be part of every source file. This can be enforced using
 the `license` task and configuration.
 
@@ -29,26 +25,16 @@ First, add the license as a license file:
 ➜ curl http://www.apache.org/licenses/LICENSE-2.0.txt | sed '/./,$!d' > LICENSE
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100 11358  100 11358    0     0   150k      0 --:--:-- --:--:-- --:--:--  151k
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 11358  100 11358    0     0   158k      0 --:--:-- --:--:-- --:--:--  160k
 ```
 
 Run the following to configure a license header:
 
 ```
 ➜ echo 'header: |
-  // Copyright (c) 2017 Author Name
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.' > godel/config/license.yml
+  // Copyright (c) {{YEAR}} Author Name. All rights reserved.
+  // Use of this source code is governed by the Apache License, Version 2.0
+  // that can be found in the LICENSE file.' > godel/config/license-plugin.yml
 ```
 
 Run `./godelw license` to apply this license to all of the Go files in the project:
@@ -62,7 +48,6 @@ Verify that this updated the Go files:
 ```
 ➜ git status
 On branch master
-Your branch is up-to-date with 'origin/master'.
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git checkout -- <file>..." to discard changes in working directory)
@@ -70,7 +55,7 @@ Changes not staged for commit:
 	modified:   echo/echo.go
 	modified:   echo/echo_test.go
 	modified:   echo/echoer.go
-	modified:   godel/config/license.yml
+	modified:   godel/config/license-plugin.yml
 	modified:   main.go
 
 Untracked files:
@@ -80,19 +65,9 @@ Untracked files:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 ➜ cat echo/echo.go
-// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 package echo
 
@@ -107,42 +82,40 @@ func (e *simpleEchoer) Echo(in string) string {
 }
 ```
 
+Note that the "{{YEAR}}" in the license header was automatically replaced with the year at the time that the operation
+is run (in this case, 2018). This template is rendered once when adding the license and is not otherwise modified
+(and thus the license year will generally match the creation year for the file).
+
 Commit the changes to the repository:
 
 ```
 ➜ git add LICENSE echo godel main.go
 ➜ git commit -m "Add LICENSE and license headers"
-[master 0239b28] Add LICENSE and license headers
- 6 files changed, 271 insertions(+)
+[master 38e0e82] Add LICENSE and license headers
+ 6 files changed, 221 insertions(+)
  create mode 100644 LICENSE
 ```
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
 
-([Link](https://github.com/nmiyake/echgo/tree/0239b282904d05bb9eef6c3c3edfe1c28f888ad3))
-
 Tutorial next step
 ------------------
-
 [Go generate tasks](https://github.com/palantir/godel/wiki/Generate)
 
 More
 ----
-
 ### Remove license headers
-
 In some instances, it may be desirable to remove the license headers from all of the files. For example, if you are
 changing the type of license for the repository, you will want to remove all of the license headers that are already
 present before adding new headers.
@@ -158,8 +131,6 @@ Verify that this removed the headers:
 ```
 ➜ git status
 On branch master
-Your branch is ahead of 'origin/master' by 1 commit.
-  (use "git push" to publish your local commits)
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git checkout -- <file>..." to discard changes in working directory)
@@ -184,6 +155,8 @@ func (e *simpleEchoer) Echo(in string) string {
 }
 ```
 
+If a license contains the "{{YEAR}}" placeholder, any 4-digit year will match.
+
 Revert these changes by running the following:
 
 ```
@@ -191,7 +164,6 @@ Revert these changes by running the following:
 ```
 
 ### Specify custom license headers for specific paths
-
 In some instances, a project may contain certain files or directories that should have a different license header from
 other files -- for example, if a file or directory is based on a file from another project, it may be necessary to have
 a custom header to provide attribution for the original authors.
@@ -206,27 +178,17 @@ Once that is done, update the license configuration as follows:
 
 ```
 ➜ echo 'header: |
-  // Copyright (c) 2017 Author Name
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
+  // Copyright (c) {{YEAR}} Author Name. All rights reserved.
+  // Use of this source code is governed by the Apache License, Version 2.0
+  // that can be found in the LICENSE file.
 custom-headers:
   - name: echo
     header: |
-      // Copyright 2017 Author Name. All rights reserved.
+      // Copyright {{YEAR}} Author Name. All rights reserved.
       // Licensed under the MIT License. See LICENSE in the project root
       // for license information.
     paths:
-      - echo' > godel/config/license.yml
+      - echo' > godel/config/license-plugin.yml
 ```
 
 This configuration specifies that the paths that match `echo` (which includes all paths within the `echo` directory)
@@ -236,7 +198,7 @@ following to apply the license and verify that it behaved as expected:
 ```
 ➜ ./godelw license
 ➜ cat echo/echo.go
-// Copyright 2017 Author Name. All rights reserved.
+// Copyright 2018 Author Name. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root
 // for license information.
 
@@ -252,19 +214,9 @@ func (e *simpleEchoer) Echo(in string) string {
 	return in
 }
 ➜ cat main.go
-// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 package main
 
@@ -273,7 +225,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nmiyake/echgo/echo"
+	"github.com/nmiyake/echgo2/echo"
 )
 
 var version = "none"
@@ -282,7 +234,7 @@ func main() {
 	versionVar := flag.Bool("version", false, "print version")
 	flag.Parse()
 	if *versionVar {
-		fmt.Println("echgo version:", version)
+		fmt.Println("echgo2 version:", version)
 		return
 	}
 	echoer := echo.NewEchoer()

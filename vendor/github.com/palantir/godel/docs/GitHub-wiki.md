@@ -4,38 +4,35 @@ The `github-wiki` task can be used to sync a particular directory with the GitHu
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
-
-([Link](https://github.com/nmiyake/echgo/tree/676aad36a5c355af826397be682f49bbb4a9ed20))
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 
 Sync a docs directory with a GitHub wiki
 ----------------------------------------
-
-We will now add documentation for `echgo` and sync it with the GitHub wiki for the project.
+We will now add documentation for echgo2 and sync it with the GitHub wiki for the project.
 
 Run the following to create a "docs" directory and add some documentation and commit the changes:
 
 ```
 ➜ mkdir -p docs
-➜ echo '* [Home](https://github.com/nmiyake/echgo/wiki)' > docs/_Sidebar.md
-➜ echo '`echgo` is a tool that echoes the input provided by the user.' > docs/Home.md
+➜ echo "* [Home](https://${PROJECT_PATH}/wiki)" > docs/_Sidebar.md
+➜ echo 'echgo2 is a tool that echoes the input provided by the user.' > docs/Home.md
 ➜ git add docs
 ➜ git commit -m "Add documentation"
-[master 17c7406] Add documentation
+[master 28e4ae0] Add documentation
  2 files changed, 2 insertions(+)
  create mode 100644 docs/Home.md
  create mode 100644 docs/_Sidebar.md
@@ -43,14 +40,14 @@ Run the following to create a "docs" directory and add some documentation and co
 
 The `github-wiki` task requires a project to have an existing GitHub wiki before it can work. In order to do this, one
 needs to be created using the GitHub UI. Navigate to the wiki for the project (for this example, the URL is
-https://github.com/nmiyake/echgo/wiki), click on the "Create the first page" button and click on the "Save Page" button
+https://github.com/nmiyake/echgo2/wiki), click on the "Create the first page" button and click on the "Save Page" button
 to save the first page with the default content.
 
 Now that the wiki exists, run the `github-wiki` task to publish the `docs` directory to the GitHub wiki:
 
 ```
-➜ ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo.wiki.git
-Pushing content of docs to git@github.com:nmiyake/echgo.wiki.git...
+➜ ./godelw github-wiki --docs-dir docs --repository=git@github.com:nmiyake/echgo2.wiki.git
+Pushing content of docs to git@github.com:nmiyake/echgo2.wiki.git...
 ```
 
 This commits the contents of the `docs` directory to the GitHub wiki repository:
@@ -59,24 +56,22 @@ This commits the contents of the `docs` directory to the GitHub wiki repository:
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 * `docs` contains documentation
-
-([Link](https://github.com/nmiyake/echgo/tree/17c7406291096306e92c6f82da2df09388766693))
 
 Tutorial next step
 ------------------
@@ -84,9 +79,7 @@ Tutorial next step
 
 More
 ----
-
 ### Motivation
-
 GitHub wikis are often a convenient medium for providing documentation for a project. Although GitHub wikis are backed
 by a git repository, unlike primary repositories, there is no UI provided for issuing pull requests or conducting code
 reviews. Furthermore, because the GitHub wiki repository is separate from a project's primary repository, checking

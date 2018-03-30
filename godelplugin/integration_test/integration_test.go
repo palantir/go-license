@@ -204,9 +204,7 @@ func TestUpgradeConfig(t *testing.T) {
 			{
 				Name: "legacy config is unmodified",
 				ConfigFiles: map[string]string{
-					"godel/config/godel.yml": godelYML,
-					"godel/config/license-plugin.yml": `legacy-config: true
-
+					"godel/config/license-plugin.yml": `
 header: |
   // Copyright 2016 Palantir Technologies, Inc.
   //
@@ -223,7 +221,8 @@ custom-headers:
       - subprojectDir
 `,
 				},
-				WantOutput: "Upgraded configuration for license-plugin.yml\n",
+				Legacy:     true,
+				WantOutput: ``,
 				WantFiles: map[string]string{
 					"godel/config/license-plugin.yml": `
 header: |
@@ -246,7 +245,6 @@ custom-headers:
 			{
 				Name: "current config is unmodified",
 				ConfigFiles: map[string]string{
-					"godel/config/godel.yml": godelYML,
 					"godel/config/license-plugin.yml": `
 header: |
   // Copyright 2016 Palantir Technologies, Inc.

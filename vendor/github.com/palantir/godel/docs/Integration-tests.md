@@ -5,30 +5,29 @@ artifacts of a product and test tags can be used to define test sets for integra
 
 Tutorial start state
 --------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 
-([Link](https://github.com/nmiyake/echgo/tree/1982133dbe7c811f1e2d71f4dcc25ff20f84146a))
+([Link]())
 
 Write tests that run using build artifacts
 ------------------------------------------
-
-`echgo` currently has unit tests that test the contracts of the `echgo` package. Unit tests are a great way to test the
+`echgo2` currently has unit tests that test the contracts of the `echgo` package. Unit tests are a great way to test the
 API contracts of packages, and in an ideal world all of the packages for a project having tests that verify the package
 APIs would be sufficient to ensure the correctness of an entire program.
 
-However, in many cases there exists behavior that can only be tested in a true end-to-end workflow. For example, `echgo`
+However, in many cases there exists behavior that can only be tested in a true end-to-end workflow. For example, echgo2
 currently has some logic in its `main.go` file that parses the command-line flags, determines what functions to call
 based on flags and ultimately prints the output to the console. If we want to test things such as what happens when
 invalid values are supplied as flags, how multiple command-line arguments are parsed or the exit codes of the program,
@@ -39,48 +38,32 @@ projects that use gödel to build their products. The `products` package provide
 products are built using the build configuration defined for the product and provides a path to the built executable
 that can be used for testing.
 
-We need to add `github.com/palantir/godel/pkg/products` as a vendored dependency for the project. Start by cloning the
+We need to add `github.com/palantir/godel/pkg/products` as a vendored dependency for the project. Start by getting the
 gödel project:
 
 ```
-➜ mkdir -p $GOPATH/github.com/palantir && cd $_
-➜ git clone https://github.com/palantir/godel.git
-Cloning into 'godel'...
-remote: Counting objects: 3210, done.
-remote: Total 3210 (delta 0), reused 0 (delta 0), pack-reused 3209
-Receiving objects: 100% (3210/3210), 3.65 MiB | 1.92 MiB/s, done.
-Resolving deltas: 100% (1382/1382), done.
-Checking connectivity... done.
+➜ mkdir -p ${GOPATH}/src/github.com/palantir && cd $_
+➜ go get -u github.com/palantir/godel
 ```
 
 There are multiple different ways to vendor dependencies. For the purposes of this tutorial, we will forego formal
 vendoring and vendor the dependency manually.
 
 ```
-➜ cd $GOPATH/src/github.com/nmiyake/echgo
-➜ mkdir -p vendor/github.com/palantir/godel/pkg/products
-➜ cp $GOPATH/src/github.com/palantir/godel/pkg/products/* vendor/github.com/palantir/godel/pkg/products/
+➜ cd ${GOPATH}/src/${PROJECT_PATH}
+➜ mkdir -p vendor/github.com/palantir/godel/pkg/products/v2/products
+➜ cp ${GOPATH}/src/github.com/palantir/godel/pkg/products/v2/products/* vendor/github.com/palantir/godel/pkg/products/v2/products
 ```
 
-Run the following to define a test that tests the behavior of invoking `echgo` with an invalid echo type and run the
-test (this test is still in the iteration phase, so it simply prints the result of the output rather than asserting
-against it):
+Run the following to define a test that tests the behavior of invoking echgo2 with an invalid echo type and run the test
+(this test is still in the iteration phase, so it simply prints the result of the output rather than asserting against
+it):
 
 ```
 ➜ mkdir -p integration_test
-➜ echo '// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+➜ echo '// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 package integration_test
 
@@ -89,11 +72,11 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/palantir/godel/pkg/products"
+	"github.com/palantir/godel/pkg/products/v2/products"
 )
 
 func TestInvalidType(t *testing.T) {
-	echgoPath, err := products.Bin("echgo")
+	echgoPath, err := products.Bin("echgo2")
 	if err != nil {
 		panic(err)
 	}
@@ -108,12 +91,12 @@ func TestInvalidType(t *testing.T) {
 ➜ go test -v ./integration_test
 === RUN   TestInvalidType
 "invalid echo type: invalid\n"
---- PASS: TestInvalidType (1.43s)
+--- PASS: TestInvalidType (0.59s)
 PASS
-ok  	github.com/nmiyake/echgo/integration_test	1.566s
+ok  	github.com/nmiyake/echgo2/integration_test	0.592s
 ```
 
-The `products.Bin("echgo")` call uses gödel to build the `echgo` product (if needed) and returns a path to the binary
+The `products.Bin("echgo2")` call uses gödel to build the echgo2 product (if needed) and returns a path to the binary
 that was built. Because this is a path to a valid binary, `exec.Command` can be use to invoke it. This allows the test
 to specify arguments, hook up input/output streams, check error values and assert various behavior.
 
@@ -124,19 +107,9 @@ code, which should cause `cmd.CombinedOutput` to return an error.
 Fix the bug by updating `main.go` and then re-run the test:
 
 ```
-➜ echo '// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+➜ SRC='// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 package main
 
@@ -146,7 +119,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nmiyake/echgo/echo"
+	"PROJECT_PATH/echo"
 )
 
 var version = "none"
@@ -156,7 +129,7 @@ func main() {
 	typeVar := flag.String("type", echo.Simple.String(), "type of echo")
 	flag.Parse()
 	if *versionVar {
-		fmt.Println("echgo version:", version)
+		fmt.Println("echgo2 version:", version)
 		return
 	}
 	typ, err := echo.TypeFrom(*typeVar)
@@ -166,34 +139,23 @@ func main() {
 	}
 	echoer := echo.NewEchoer(typ)
 	fmt.Println(echoer.Echo(strings.Join(flag.Args(), " ")))
-}' > main.go
+}' && SRC=${SRC//PROJECT_PATH/$PROJECT_PATH} && echo "$SRC" > main.go
 ➜ go test -v ./integration_test
 === RUN   TestInvalidType
 "invalid echo type: invalid\n"
---- FAIL: TestInvalidType (1.38s)
-	integration_test.go:33: cmd [/Volumes/git/go/src/github.com/nmiyake/echgo/build/0.0.2-4-g1982133.dirty/darwin-amd64/echgo -type invalid foo] failed with error exit status 1. Output: invalid echo type: invalid
+--- FAIL: TestInvalidType (0.54s)
+	integration_test.go:23: cmd [/go/src/github.com/nmiyake/echgo2/out/build/echgo2/0.0.2-4-g60994d2-dirty/linux-amd64/echgo2 -type invalid foo] failed with error exit status 1. Output: invalid echo type: invalid
 FAIL
-exit status 1
-FAIL	github.com/nmiyake/echgo/integration_test	1.564s
+FAIL	github.com/nmiyake/echgo2/integration_test	0.545s
 ```
 
 We can see that the test now fails as expected. Since this is the expected behavior, update the test to pass when this
 happens and run the test again:
 
 ```
-➜ echo '// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+➜ echo '// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 package integration_test
 
@@ -201,11 +163,11 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/palantir/godel/pkg/products"
+	"github.com/palantir/godel/pkg/products/v2/products"
 )
 
 func TestInvalidType(t *testing.T) {
-	echgoPath, err := products.Bin("echgo")
+	echgoPath, err := products.Bin("echgo2")
 	if err != nil {
 		panic(err)
 	}
@@ -227,9 +189,9 @@ func TestInvalidType(t *testing.T) {
 }' > integration_test/integration_test.go
 ➜ go test -v ./integration_test
 === RUN   TestInvalidType
---- PASS: TestInvalidType (0.51s)
+--- PASS: TestInvalidType (0.23s)
 PASS
-ok  	github.com/nmiyake/echgo/integration_test	0.707s
+ok  	github.com/nmiyake/echgo2/integration_test	0.234s
 ```
 
 We can see that the test now passes. The test will now run when `./godelw test` is invoked.
@@ -239,25 +201,15 @@ One thing to note about this construction is that the `go build` and `go install
 
 ```
 ➜ go build ./integration_test
-go build github.com/nmiyake/echgo/integration_test: no non-test Go files in /Volumes/git/go/src/github.com/nmiyake/echgo/integration_test
+go build github.com/nmiyake/echgo2/integration_test: no non-test Go files in /go/src/github.com/nmiyake/echgo2/integration_test
 ```
 
 We can work around this by adding a `doc.go` file to the directory to act as a placeholder:
 
 ```
-➜ echo '// Copyright (c) 2017 Author Name
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+➜ echo '// Copyright (c) 2018 Author Name. All rights reserved.
+// Use of this source code is governed by the Apache License, Version 2.0
+// that can be found in the LICENSE file.
 
 // Package integration contains integration tests.
 package integration' > integration_test/doc.go
@@ -273,10 +225,10 @@ Run `./godelw test` to verify that this test is run:
 
 ```
 ➜ ./godelw test
-ok  	github.com/nmiyake/echgo                 	0.189s [no tests to run]
-ok  	github.com/nmiyake/echgo/echo            	0.201s
-ok  	github.com/nmiyake/echgo/generator       	0.179s [no tests to run]
-ok  	github.com/nmiyake/echgo/integration_test	0.614s
+?   	github.com/nmiyake/echgo2                 	[no test files]
+ok  	github.com/nmiyake/echgo2/echo            	0.002s
+?   	github.com/nmiyake/echgo2/generator       	[no test files]
+ok  	github.com/nmiyake/echgo2/integration_test	0.191s
 ```
 
 The configuration in `godel/config/test.yml` can be used to group tests into tags. Update the configuration as follows:
@@ -285,7 +237,7 @@ The configuration in `godel/config/test.yml` can be used to group tests into tag
 ➜ echo 'tags:
   integration:
     names:
-      - "^integration_test$"' > godel/config/test.yml
+      - "^integration_test$"' > godel/config/test-plugin.yml
 ```
 
 This configuration defines a tag named "integration" that matches any directories named "integration_test". Run the
@@ -293,7 +245,7 @@ following command to run only the tests that match the "integration" tag:
 
 ```
 ➜ ./godelw test --tags=integration
-ok  	github.com/nmiyake/echgo/integration_test	0.583s
+ok  	github.com/nmiyake/echgo2/integration_test	0.196s
 ```
 
 By default, the `./godelw test` task runs all tests (all tagged and untagged tests). Multiple tags can be specified by
@@ -305,35 +257,32 @@ Commit these changes by running the following:
 ```
 ➜ git add godel main.go integration_test vendor
 ➜ git commit -m "Add integration tests"
-[master 676aad3] Add integration tests
- 6 files changed, 236 insertions(+), 1 deletion(-)
+[master 25fec88] Add integration tests
+ 6 files changed, 220 insertions(+), 1 deletion(-)
  create mode 100644 integration_test/doc.go
  create mode 100644 integration_test/integration_test.go
- create mode 100644 vendor/github.com/palantir/godel/pkg/products/products.go
- create mode 100644 vendor/github.com/palantir/godel/pkg/products/products_test.go
+ create mode 100644 vendor/github.com/palantir/godel/pkg/products/v2/products/products.go
+ create mode 100644 vendor/github.com/palantir/godel/pkg/products/v2/products/products_test.go
 ```
 
 Tutorial end state
 ------------------
-
-* `$GOPATH/src/github.com/nmiyake/echgo` exists and is the working directory
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
 * Project contains `godel` and `godelw`
 * Project contains `main.go`
-* Project contains `.gitignore` that ignores IDEA files
+* Project contains `.gitignore` that ignores GoLand files
 * Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
-* `godel/config/dist.yml` is configured to build `echgo`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
 * Project is tagged as 0.0.1
-* `godel/config/dist.yml` is configured to create distributions for `echgo`
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
 * Project is tagged as 0.0.2
 * Go files have license headers
-* `godel/config/generate.yml` is configured to generate string function
-* `godel/config/exclude.yml` is configured to ignore all `.+_string.go` files
+* `godel/config/godel.yml` is configured to add the go-generate plugin
+* `godel/config/generate-plugin.yml` is configured to generate string function
+* `godel/config/godel.yml` is configured to ignore all `.+_string.go` files
 * `integration_test` contains integration tests
-* `godel/config/test.yml` is configured to specify the "integration" tag
-
-([Link](https://github.com/nmiyake/echgo/tree/676aad36a5c355af826397be682f49bbb4a9ed20))
+* `godel/config/test-plugin.yml` is configured to specify the "integration" tag
 
 Tutorial next step
 ------------------
-
 [Sync documentation with GitHub wiki](https://github.com/palantir/godel/wiki/GitHub-wiki)

@@ -1,0 +1,158 @@
+Summary
+-------
+`./godelw license` updates the Go files in the project to have a specific license header based on configuration.
+
+Tutorial start state
+--------------------
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
+* Project contains `godel` and `godelw`
+* Project contains `main.go`
+* Project contains `.gitignore` that ignores GoLand files
+* Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
+* Project is tagged as 0.0.1
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
+* Project is tagged as 0.0.2
+
+License
+-------
+Many open-source projects require specific license headers to be part of every source file. This can be enforced using
+the `license` task and configuration.
+
+First, add the license as a license file:
+
+```START_TUTORIAL_CODE
+curl http://www.apache.org/licenses/LICENSE-2.0.txt | sed '/./,$!d' > LICENSE
+```END_TUTORIAL_CODE
+
+Run the following to configure a license header:
+
+```START_TUTORIAL_CODE
+echo 'header: |
+  // Copyright (c) {{YEAR}} Author Name. All rights reserved.
+  // Use of this source code is governed by the Apache License, Version 2.0
+  // that can be found in the LICENSE file.' > godel/config/license-plugin.yml
+```END_TUTORIAL_CODE
+
+Run `./godelw license` to apply this license to all of the Go files in the project:
+
+```START_TUTORIAL_CODE
+./godelw license
+```END_TUTORIAL_CODE
+
+Verify that this updated the Go files:
+
+```START_TUTORIAL_CODE
+git status
+```END_TUTORIAL_CODE
+```START_TUTORIAL_CODE
+cat echo/echo.go
+```END_TUTORIAL_CODE
+
+Note that the "{{YEAR}}" in the license header was automatically replaced with the year at the time that the operation
+is run (in this case, 2018). This template is rendered once when adding the license and is not otherwise modified
+(and thus the license year will generally match the creation year for the file).
+
+Commit the changes to the repository:
+
+```START_TUTORIAL_CODE
+git add LICENSE echo godel main.go
+```END_TUTORIAL_CODE
+```START_TUTORIAL_CODE
+git commit -m "Add LICENSE and license headers"
+```END_TUTORIAL_CODE
+
+Tutorial end state
+------------------
+* `${GOPATH}/src/${PROJECT_PATH}` exists, is the working directory and is initialized as a Git repository
+* Project contains `godel` and `godelw`
+* Project contains `main.go`
+* Project contains `.gitignore` that ignores GoLand files
+* Project contains `echo/echo.go`, `echo/echo_test.go` and `echo/echoer.go`
+* `godel/config/dist-plugin.yml` is configured to build `echgo2`
+* Project is tagged as 0.0.1
+* `godel/config/dist-plugin.yml` is configured to create distributions for `echgo`
+* Project is tagged as 0.0.2
+* Go files have license headers
+
+Tutorial next step
+------------------
+[Go generate tasks](https://github.com/palantir/godel/wiki/Generate)
+
+More
+----
+### Remove license headers
+In some instances, it may be desirable to remove the license headers from all of the files. For example, if you are
+changing the type of license for the repository, you will want to remove all of the license headers that are already
+present before adding new headers.
+
+Run the following command:
+
+```START_TUTORIAL_CODE
+./godelw license --remove
+```END_TUTORIAL_CODE
+
+Verify that this removed the headers:
+
+```START_TUTORIAL_CODE
+git status
+```END_TUTORIAL_CODE
+```START_TUTORIAL_CODE
+cat echo/echo.go
+```END_TUTORIAL_CODE
+
+If a license contains the "{{YEAR}}" placeholder, any 4-digit year will match.
+
+Revert these changes by running the following:
+
+```START_TUTORIAL_CODE
+git checkout -- echo main.go
+```END_TUTORIAL_CODE
+
+### Specify custom license headers for specific paths
+In some instances, a project may contain certain files or directories that should have a different license header from
+other files -- for example, if a file or directory is based on a file from another project, it may be necessary to have
+a custom header to provide attribution for the original authors.
+
+Run the following command to remove the existing headers:
+
+```START_TUTORIAL_CODE
+./godelw license --remove
+```END_TUTORIAL_CODE
+
+Once that is done, update the license configuration as follows:
+
+```START_TUTORIAL_CODE
+echo 'header: |
+  // Copyright (c) {{YEAR}} Author Name. All rights reserved.
+  // Use of this source code is governed by the Apache License, Version 2.0
+  // that can be found in the LICENSE file.
+custom-headers:
+  - name: echo
+    header: |
+      // Copyright {{YEAR}} Author Name. All rights reserved.
+      // Licensed under the MIT License. See LICENSE in the project root
+      // for license information.
+    paths:
+      - echo' > godel/config/license-plugin.yml
+```END_TUTORIAL_CODE
+
+This configuration specifies that the paths that match `echo` (which includes all paths within the `echo` directory)
+should use the custom header named "echo", while all of the other files should use the standard header. Run the
+following to apply the license and verify that it behaved as expected:
+
+```START_TUTORIAL_CODE
+./godelw license
+```END_TUTORIAL_CODE
+```START_TUTORIAL_CODE
+cat echo/echo.go
+```END_TUTORIAL_CODE
+```START_TUTORIAL_CODE
+cat main.go
+```END_TUTORIAL_CODE
+
+Revert these changes by running the following:
+
+```START_TUTORIAL_CODE
+git checkout -- echo godel
+```END_TUTORIAL_CODE
