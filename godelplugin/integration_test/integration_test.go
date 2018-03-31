@@ -240,6 +240,27 @@ custom-headers:
 				},
 			},
 			{
+				Name: "legacy config is upgraded and empty fields are omitted",
+				ConfigFiles: map[string]string{
+					"godel/config/license.yml": `
+header: |
+  // Copyright 2016 Palantir Technologies, Inc.
+  //
+  // License content.
+`,
+				},
+				Legacy: true,
+				WantOutput: `Upgraded configuration for license-plugin.yml
+`,
+				WantFiles: map[string]string{
+					"godel/config/license-plugin.yml": `header: |
+  // Copyright 2016 Palantir Technologies, Inc.
+  //
+  // License content.
+`,
+				},
+			},
+			{
 				Name: "current config is unmodified",
 				ConfigFiles: map[string]string{
 					"godel/config/license-plugin.yml": `

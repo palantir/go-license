@@ -65,7 +65,7 @@
   branch = "master"
   name = "github.com/palantir/pkg"
   packages = ["cobracli","matcher","pkgpath","specdir"]
-  revision = "b59de130c1302a3c591efcfb0fd575727f53d0d2"
+  revision = "15f6fc0c684b2603c4e75a02ca132e5c434c7297"
 
 [[projects]]
   name = "github.com/pkg/errors"
