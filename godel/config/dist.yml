@@ -17,5 +17,5 @@ products:
           arch: amd64
         - os: linux
           arch: amd64
-      version-var: github.com/palantir/go-license/vendor/github.com/palantir/pkg/cobracli.Version
+      version-var: github.com/palantir/go-license/godelplugin/cmd.Version
 group-id: com.palantir.go-license
