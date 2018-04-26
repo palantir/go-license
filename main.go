@@ -12,8 +12,6 @@ import (
 	"github.com/palantir/go-license/cmd"
 )
 
-var debugFlagVal bool
-
 func main() {
-	os.Exit(cobracli.ExecuteWithDefaultParamsWithVersion(cmd.RootCmd, &debugFlagVal, ""))
+	os.Exit(cobracli.ExecuteWithDefaultParams(cmd.RootCmd))
 }

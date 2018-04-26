@@ -7,33 +7,35 @@ package cmd
 import (
 	"github.com/palantir/godel/framework/pluginapi/v2/pluginapi"
 	"github.com/palantir/godel/framework/verifyorder"
-	"github.com/palantir/pkg/cobracli"
 )
 
-var PluginInfo = pluginapi.MustNewPluginInfo(
-	"com.palantir.go-license",
-	"license-plugin",
-	cobracli.Version,
-	pluginapi.PluginInfoUsesConfigFile(),
-	pluginapi.PluginInfoGlobalFlagOptions(
-		pluginapi.GlobalFlagOptionsParamDebugFlag("--"+pluginapi.DebugFlagName),
-		pluginapi.GlobalFlagOptionsParamProjectDirFlag("--"+pluginapi.ProjectDirFlagName),
-		pluginapi.GlobalFlagOptionsParamGodelConfigFlag("--"+pluginapi.GodelConfigFlagName),
-		pluginapi.GlobalFlagOptionsParamConfigFlag("--"+pluginapi.ConfigFlagName),
-	),
-	pluginapi.PluginInfoTaskInfo(
-		"license",
-		"Run license task",
-		pluginapi.TaskInfoCommand("run"),
-		pluginapi.TaskInfoVerifyOptions(
-			pluginapi.VerifyOptionsOrdering(intVar(verifyorder.License)),
-			pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
+var (
+	Version    = "unspecified"
+	PluginInfo = pluginapi.MustNewPluginInfo(
+		"com.palantir.go-license",
+		"license-plugin",
+		Version,
+		pluginapi.PluginInfoUsesConfigFile(),
+		pluginapi.PluginInfoGlobalFlagOptions(
+			pluginapi.GlobalFlagOptionsParamDebugFlag("--"+pluginapi.DebugFlagName),
+			pluginapi.GlobalFlagOptionsParamProjectDirFlag("--"+pluginapi.ProjectDirFlagName),
+			pluginapi.GlobalFlagOptionsParamGodelConfigFlag("--"+pluginapi.GodelConfigFlagName),
+			pluginapi.GlobalFlagOptionsParamConfigFlag("--"+pluginapi.ConfigFlagName),
 		),
-	),
-	pluginapi.PluginInfoUpgradeConfigTaskInfo(
-		pluginapi.UpgradeConfigTaskInfoCommand("upgrade-config"),
-		pluginapi.LegacyConfigFile("license.yml"),
-	),
+		pluginapi.PluginInfoTaskInfo(
+			"license",
+			"Run license task",
+			pluginapi.TaskInfoCommand("run"),
+			pluginapi.TaskInfoVerifyOptions(
+				pluginapi.VerifyOptionsOrdering(intVar(verifyorder.License)),
+				pluginapi.VerifyOptionsApplyFalseArgs("--verify"),
+			),
+		),
+		pluginapi.PluginInfoUpgradeConfigTaskInfo(
+			pluginapi.UpgradeConfigTaskInfoCommand("upgrade-config"),
+			pluginapi.LegacyConfigFile("license.yml"),
+		),
+	)
 )
 
 func intVar(val int) *int {
