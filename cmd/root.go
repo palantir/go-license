@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	"github.com/palantir/pkg/cobracli"
 	"github.com/spf13/cobra"
 
 	"github.com/palantir/go-license/commoncmd"
@@ -12,7 +13,7 @@ import (
 )
 
 var (
-	RootCmd = &cobra.Command{
+	rootCmd = &cobra.Command{
 		Use:   "go-license [flags] [files]",
 		Short: "Write or verify license headers for Go files",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,8 +34,12 @@ var (
 	removeFlagVal bool
 )
 
+func Execute() int {
+	return cobracli.ExecuteWithDefaultParams(rootCmd)
+}
+
 func init() {
-	RootCmd.Flags().StringVar(&cfgFlagVal, "config", "", "the YAML configuration file for the license check")
-	RootCmd.Flags().BoolVar(&verifyFlagVal, "verify", false, "verify that files have proper license headers applied")
-	RootCmd.Flags().BoolVar(&removeFlagVal, "remove", false, "remove the license header from files (no-op if verify is true)")
+	rootCmd.Flags().StringVar(&cfgFlagVal, "config", "", "the YAML configuration file for the license check")
+	rootCmd.Flags().BoolVar(&verifyFlagVal, "verify", false, "verify that files have proper license headers applied")
+	rootCmd.Flags().BoolVar(&removeFlagVal, "remove", false, "remove the license header from files (no-op if verify is true)")
 }
