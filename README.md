@@ -56,7 +56,3 @@ The string `{{YEAR}}` indicates that, when a license is added by the tool, the c
 that match licenses (for verification or removal), `{{YEAR}}` will match any 4-digit number.
 
 The `custom-headers` configuration allows custom headers to be specified for matching names or paths.
-
-go-license-plugin
-=================
-go-license-plugin is a gödel plugin that provides the `license` task, which runs go-license on the project Go files.
