@@ -4,22 +4,15 @@ go-license
 
 Usage
 -----
-Run `./go-license --config=license.yml [files]` to apply the license specified by the configuration in `license.yml` to
-all of the specified files (only the files that end in `.go` and are not excluded by configuration are processed).
+Run `./go-license --config=license.yml [files]` to apply the license specified by the configuration in `license.yml` to all of the specified files (only the files that end in `.go` and are not excluded by configuration are processed).
 
-Run `./go-license --config=license.yml --remove [files]` to remove the license specified by the configuration in
-`license.yml` from all of the specified files (only the files that end in `.go` and are not excluded by configuration
-are processed).
+Run `./go-license --config=license.yml --remove [files]` to remove the license specified by the configuration in `license.yml` from all of the specified files (only the files that end in `.go` and are not excluded by configuration are processed).
 
-Run `./go-license --config=license.yml --verify [files]` to verify that the license specified by the configuration is
-applied to all of the specified files `*.go` files (only the files that end in `.go` and are not excluded by
-configuration are processed). If the license is not applied properly to any of the files, the files that do not match
-are printed and the program exits with a non-0 exit code.
+Run `./go-license --config=license.yml --verify [files]` to verify that the license specified by the configuration is applied to all of the specified files `*.go` files (only the files that end in `.go` and are not excluded by configuration are processed). If the license is not applied properly to any of the files, the files that do not match are printed and the program exits with a non-0 exit code.
 
 Configuration
 -------------
-The configuration file specifies the header that should be applied as a `header` key. It also supports an `exclude`
-parameter that specifies files or paths that should be excluded from configuration.
+The configuration file specifies the header that should be applied as a `header` key. It also supports an `exclude` parameter that specifies files or paths that should be excluded from configuration.
 
 Here is an example configuration file:
 
@@ -52,7 +45,6 @@ exclude:
     - "vendor"
 ```
 
-The string `{{YEAR}}` indicates that, when a license is added by the tool, the current year will be used. For operations
-that match licenses (for verification or removal), `{{YEAR}}` will match any 4-digit number.
+The string `{{YEAR}}` indicates that, when a license is added by the tool, the current year will be used. For operations that match licenses (for verification or removal), `{{YEAR}}` will match any 4-digit number.
 
 The `custom-headers` configuration allows custom headers to be specified for matching names or paths.
