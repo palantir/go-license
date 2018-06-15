@@ -19,22 +19,9 @@
   packages = [
     "dirs",
     "errorstringer",
-    "gofiles",
+    "gofiles"
   ]
   revision = "b64318170fdef93b4462420e0badef8050dbb7ec"
-
-[[projects]]
-  name = "github.com/palantir/go-license"
-  packages = [
-    "cmd",
-    "commoncmd",
-    "golicense",
-    "golicense/config",
-    "golicense/config/internal/legacy",
-    "golicense/config/internal/v0",
-  ]
-  revision = "5387dc43f48b9cba616ce7a978c96522820432ba"
-  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -47,7 +34,7 @@
   name = "github.com/palantir/pkg"
   packages = [
     "cobracli",
-    "matcher",
+    "matcher"
   ]
   revision = "23395ebeee5df1083443a6261e5f674a76af91b6"
 
@@ -79,7 +66,7 @@
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "require",
+    "require"
   ]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
@@ -93,6 +80,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7417ed9311e2a7e77997c3f8c9cfc70fea320d869526c4897a1b70ee1f548c68"
+  inputs-digest = "d4c6c6df752ce2bc7037efab6df73686a292a3169de888aa6651b85dce3ce77d"
   solver-name = "gps-cdcl"
   solver-version = 1
