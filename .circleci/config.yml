@@ -1,106 +1,33 @@
-working_dir: &working_dir
-  working_directory: /go/src/github.com/palantir/go-license
+owner-repo: &owner-repo
+  owner-repo: palantir/go-license
 
-darwin-linux-no-cgo: &darwin-linux-no-cgo
-  <<: *working_dir
-  docker:
-    - image: nmiyake/go:go-darwin-linux-no-cgo-1.10.1-t127
-      environment:
-        CGO_ENABLED: 0
+version: 2.1
 
-godel-root-cache-restore: &godel-root-cache-restore
-  restore_cache:
-    keys:
-      - godel-root-cache-{{ checksum "godelw" }}-{{ checksum "godel/config/godel.yml" }}-v1
-godel-root-cache-save: &godel-root-cache-save
-  save_cache:
-    key: godel-root-cache-{{ checksum "godelw" }}-{{ checksum "godel/config/godel.yml" }}-v1
-    paths:
-      - ~/.godel
-
-go-version: &go-version
-  run: go version
-
-godel-cache-restore: &godel-cache-restore
-  restore_cache:
-    keys:
-      - godel-cache-{{ checksum "godelw" }}-v1
-
-godel-version: &godel-version
-  run: ./godelw version
-
-godel-cache-save: &godel-cache-save
-  save_cache:
-    key: godel-cache-{{ checksum "godelw" }}-v1
-    paths:
-      - ~/.godel
-
-define-tests-dir: &define-tests-dir
-  run: echo 'export TESTS_DIR=/tmp/test-results' >> $BASH_ENV
-
-mkdir-tests-dir: &mkdir-tests-dir
-  run: mkdir -p "${TESTS_DIR}"
-
-go-install-packages: &go-install-packages
-  run: go install $(./godelw packages)
-
-godelw-verify: &godelw-verify
-  run: ./godelw verify --apply=false --junit-output="$TESTS_DIR/$CIRCLE_PROJECT_REPONAME-tests.xml"
-
-store-test-results: &store-test-results
-  type: test-results-store
-  path: /tmp/test-results
-
-store-artifacts: &store-artifacts
-  type: artifacts-store
-  path: /tmp/test-results
-  destination: test-results
-
-version: 2
-jobs:
-  verify:
-    <<: *darwin-linux-no-cgo
-    steps:
-      - checkout
-      - *go-version
-      - *godel-cache-restore
-      - *godel-version
-      - *godel-cache-save
-      - *define-tests-dir
-      - *mkdir-tests-dir
-      - *go-install-packages
-      - *godelw-verify
-      - *store-test-results
-      - *store-artifacts
-  dist:
-    <<: *darwin-linux-no-cgo
-    steps:
-      - checkout
-      - *go-version
-      - *godel-cache-restore
-      - *godel-version
-      - *godel-cache-save
-      - run: ./godelw dist
-      - save_cache:
-          key: dist-{{ .Environment.CIRCLE_WORKFLOW_ID }}-{{ .Environment.CIRCLE_SHA1 }}-v1
-          paths:
-            - dist
-
-### Workflows ###
-requires_products: &requires_products
-  - verify
-  - dist
-
-all-tags-filter: &all-tags-filter
-  filters:
-    tags:
-      only: /.*/
+orbs:
+  go: palantir/go@0.0.5
+  godel: palantir/godel@0.0.2
 
 workflows:
   version: 2
-  dist-verify:
+  verify-test:
     jobs:
-      - verify:
-          <<: *all-tags-filter
-      - dist:
-          <<: *all-tags-filter
+      - godel/verify:
+          name: verify
+          executor:
+            name: go/golang-1_11
+            <<: *owner-repo
+      - godel/test:
+          name: test-go-1.11
+          executor:
+            name: go/golang-1_11
+            <<: *owner-repo
+      - godel/test:
+          name: test-go-1.10
+          executor:
+            name: go/golang-1_10
+            <<: *owner-repo
+      - godel/test:
+          name: test-go-1.9
+          executor:
+            name: go/golang-1_9
+            <<: *owner-repo
