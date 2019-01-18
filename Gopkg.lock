@@ -2,84 +2,117 @@
 
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "UT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
+  pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
   branch = "develop"
+  digest = "1:aec618806918ced139b3548e6d1c65af3b9b35dd0b76ed3d6490cd9946c55a71"
   name = "github.com/nmiyake/pkg"
   packages = [
     "dirs",
     "errorstringer",
     "gofiles",
   ]
+  pruneopts = "UT"
   revision = "b64318170fdef93b4462420e0badef8050dbb7ec"
 
 [[projects]]
   branch = "master"
+  digest = "1:9bc8b14ed99e77a298c814be5b7eb4d4c318af5517864cae914163b5872c6ac2"
   name = "github.com/palantir/godel"
   packages = ["pkg/versionedconfig"]
+  pruneopts = "UT"
   revision = "6ef6fc2811e260af0641aae25a45881217b3cf3d"
 
 [[projects]]
   branch = "master"
+  digest = "1:803274fd83685eeb294de29e15bb9f0c9b7cb14dcc6f39371409e3096144e221"
   name = "github.com/palantir/pkg"
   packages = [
     "cobracli",
     "matcher",
   ]
+  pruneopts = "UT"
   revision = "23395ebeee5df1083443a6261e5f674a76af91b6"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:982714fa3eaafd4251f5ccf3d133b706ad742b86c195d594e1a86050a02f87a8"
   name = "github.com/spf13/cobra"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
   version = "v0.0.2"
 
 [[projects]]
+  digest = "1:1b21a2b4058a779f290c7341cd93267492e0ecea6c8b54f64a4a5fd7ff131034"
   name = "github.com/spf13/pflag"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:7e8d267900c7fa7f35129a2a37596e38ed0f11ca746d6d9ba727980ee138f9f6"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
   ]
+  pruneopts = "UT"
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
 [[projects]]
+  digest = "1:2a81c6e126d36ad027328cffaa4888fc3be40f09dc48028d1f93705b718130b9"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
   version = "v2.1.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d4c6c6df752ce2bc7037efab6df73686a292a3169de888aa6651b85dce3ce77d"
+  input-imports = [
+    "github.com/nmiyake/pkg/dirs",
+    "github.com/nmiyake/pkg/gofiles",
+    "github.com/palantir/godel/pkg/versionedconfig",
+    "github.com/palantir/pkg/cobracli",
+    "github.com/palantir/pkg/matcher",
+    "github.com/pkg/errors",
+    "github.com/spf13/cobra",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
