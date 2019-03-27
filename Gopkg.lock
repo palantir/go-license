@@ -30,6 +30,21 @@
   revision = "b64318170fdef93b4462420e0badef8050dbb7ec"
 
 [[projects]]
+  digest = "1:1a47d1684a7ecea4438353c9350825b438f6b0bdf5b466f9e60d03b246f828f0"
+  name = "github.com/palantir/go-license"
+  packages = [
+    "cmd",
+    "commoncmd",
+    "golicense",
+    "golicense/config",
+    "golicense/config/internal/legacy",
+    "golicense/config/internal/v0",
+  ]
+  pruneopts = "UT"
+  revision = "271aefa131d361e000826fb6415c43a117539c78"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:9bc8b14ed99e77a298c814be5b7eb4d4c318af5517864cae914163b5872c6ac2"
   name = "github.com/palantir/godel"
@@ -105,6 +120,12 @@
   input-imports = [
     "github.com/nmiyake/pkg/dirs",
     "github.com/nmiyake/pkg/gofiles",
+    "github.com/palantir/go-license/cmd",
+    "github.com/palantir/go-license/commoncmd",
+    "github.com/palantir/go-license/golicense",
+    "github.com/palantir/go-license/golicense/config",
+    "github.com/palantir/go-license/golicense/config/internal/legacy",
+    "github.com/palantir/go-license/golicense/config/internal/v0",
     "github.com/palantir/godel/pkg/versionedconfig",
     "github.com/palantir/pkg/cobracli",
     "github.com/palantir/pkg/matcher",
