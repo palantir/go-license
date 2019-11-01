@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/palantir/go-license/golicense/config/internal/legacy"
-	"github.com/palantir/go-license/golicense/config/internal/v0"
+	v0 "github.com/palantir/go-license/golicense/config/internal/v0"
 )
 
 func UpgradeConfig(cfgBytes []byte) ([]byte, error) {

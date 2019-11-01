@@ -1,0 +1,26 @@
+# github.com/davecgh/go-spew v1.1.0
+github.com/davecgh/go-spew/spew
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/nmiyake/pkg v0.0.0-20170627000939-b64318170fde
+github.com/nmiyake/pkg/dirs
+github.com/nmiyake/pkg/errorstringer
+github.com/nmiyake/pkg/gofiles
+# github.com/palantir/godel v2.0.0-rc5.0.20180330171253-6ef6fc2811e2+incompatible
+github.com/palantir/godel/pkg/versionedconfig
+# github.com/palantir/pkg v0.0.0-20180424172112-23395ebeee5d
+github.com/palantir/pkg/cobracli
+github.com/palantir/pkg/matcher
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/spf13/cobra v0.0.2
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.0
+github.com/spf13/pflag
+# github.com/stretchr/testify v1.2.1
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+# gopkg.in/yaml.v2 v2.1.1
+gopkg.in/yaml.v2
