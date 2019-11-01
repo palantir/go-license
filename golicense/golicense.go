@@ -118,7 +118,7 @@ func VerifyFiles(files []string, projectParam ProjectParam, stdout io.Writer) (b
 		plural = "files do"
 	}
 	parts := append([]string{fmt.Sprintf("%d %s not have the correct license header:", len(modified), plural)}, modified...)
-	fmt.Fprintln(stdout, strings.Join(parts, "\n\t"))
+	_, _ = fmt.Fprintln(stdout, strings.Join(parts, "\n\t"))
 	return false, nil
 }
 

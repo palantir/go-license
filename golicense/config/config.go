@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/palantir/go-license/golicense"
-	"github.com/palantir/go-license/golicense/config/internal/v0"
+	v0 "github.com/palantir/go-license/golicense/config/internal/v0"
 )
 
 type ProjectConfig v0.ProjectConfig
