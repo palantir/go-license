@@ -7,9 +7,8 @@ package config_test
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/palantir/go-license/golicense/config"
+	"gopkg.in/yaml.v2"
 )
 
 func Example() {

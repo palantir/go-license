@@ -9,10 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/palantir/go-license/golicense"
 	v0 "github.com/palantir/go-license/golicense/config/internal/v0"
+	"github.com/pkg/errors"
 )
 
 type ProjectConfig v0.ProjectConfig
