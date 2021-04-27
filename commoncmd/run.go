@@ -8,10 +8,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/palantir/go-license/golicense/config"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-
-	"github.com/palantir/go-license/golicense/config"
 )
 
 func LoadConfig(cfgFile string) (config.ProjectConfig, error) {

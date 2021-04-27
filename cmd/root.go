@@ -5,11 +5,10 @@
 package cmd
 
 import (
-	"github.com/palantir/pkg/cobracli"
-	"github.com/spf13/cobra"
-
 	"github.com/palantir/go-license/commoncmd"
 	"github.com/palantir/go-license/golicense"
+	"github.com/palantir/pkg/cobracli"
+	"github.com/spf13/cobra"
 )
 
 var (

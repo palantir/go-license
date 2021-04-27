@@ -14,12 +14,11 @@ import (
 
 	"github.com/nmiyake/pkg/dirs"
 	"github.com/nmiyake/pkg/gofiles"
+	"github.com/palantir/go-license/golicense"
+	"github.com/palantir/go-license/golicense/config"
 	"github.com/palantir/pkg/matcher"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/palantir/go-license/golicense"
-	"github.com/palantir/go-license/golicense/config"
 )
 
 func TestLicenseFiles(t *testing.T) {
