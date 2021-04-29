@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Updates module dependencies
+  links:
+  - https://github.com/palantir/go-license/pull/74
