@@ -1,6 +1,6 @@
 module github.com/palantir/go-license
 
-go 1.18
+go 1.19
 
 require (
 	github.com/nmiyake/pkg/dirs v1.0.0
