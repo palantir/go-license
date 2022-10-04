@@ -6,14 +6,12 @@ package golicense_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/nmiyake/pkg/dirs"
-	"github.com/nmiyake/pkg/gofiles"
 	"github.com/palantir/go-license/golicense"
 	"github.com/palantir/go-license/golicense/config"
 	"github.com/palantir/pkg/matcher"
@@ -22,23 +20,10 @@ import (
 )
 
 func TestLicenseFiles(t *testing.T) {
-	tmpDir, cleanup, err := dirs.TempDir("", "")
-	defer cleanup()
-	require.NoError(t, err)
-
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer func() {
-		if err := os.Chdir(originalWd); err != nil {
-			require.NoError(t, err)
-		}
-	}()
-
-	for i, currCase := range []struct {
+	for _, tc := range []struct {
 		name         string
 		projectParam golicense.ProjectParam
-		goFiles      []gofiles.GoFileSpec
-		nonGoFiles   map[string]string
+		files        map[string]string
 		wantModified []string
 		wantContent  map[string]string
 	}{
@@ -47,16 +32,10 @@ func TestLicenseFiles(t *testing.T) {
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Original comment
+			files: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -75,16 +54,10 @@ package bar`,
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright {{YEAR}} Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Original comment
+			files: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -103,7 +76,7 @@ package bar`, time.Now().Year()),
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			nonGoFiles: map[string]string{
+			files: map[string]string{
 				"foo.txt": `package foo`,
 			},
 			wantContent: map[string]string{
@@ -116,16 +89,10 @@ package bar`, time.Now().Year()),
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 				Exclude:  matcher.Name("foo.go"),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Original comment
+			files: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -142,17 +109,11 @@ package bar`,
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Copyright 2016 Palantir Technologies, Inc.
 // Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"foo.go",
@@ -182,19 +143,10 @@ package bar`,
 					},
 				},
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src:     `package bar`,
-				},
-				{
-					RelPath: "baz/baz.go",
-					Src:     `package baz`,
-				},
+			files: map[string]string{
+				"foo.go":     `package foo`,
+				"bar/bar.go": `package bar`,
+				"baz/baz.go": `package baz`,
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -230,23 +182,11 @@ package baz`,
 					},
 				},
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src:     `package bar`,
-				},
-				{
-					RelPath: "bar/baz.go",
-					Src:     `package bar`,
-				},
-				{
-					RelPath: "bar/subdir/main.go",
-					Src:     `package main`,
-				},
+			files: map[string]string{
+				"foo.go":             `package foo`,
+				"bar/bar.go":         `package bar`,
+				"bar/baz.go":         `package bar`,
+				"bar/subdir/main.go": `package main`,
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -266,50 +206,30 @@ package main`,
 			},
 		},
 	} {
-		currTmpDir, err := ioutil.TempDir(tmpDir, "")
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
+		t.Run(tc.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			oldWd := chdir(t, tmpDir)
+			defer oldWd()
 
-		err = os.Chdir(currTmpDir)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
+			files := writeFiles(t, tmpDir, tc.files)
+			modified, err := golicense.LicenseFiles(files, tc.projectParam)
+			require.NoError(t, err)
 
-		_, err = gofiles.Write(currTmpDir, currCase.goFiles)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-		writeFiles(t, currCase.nonGoFiles)
-
-		files, err := matcher.ListFiles(currTmpDir, matcher.Name(`.+`), nil)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-
-		projectParam := currCase.projectParam
-		modified, err := golicense.LicenseFiles(files, projectParam)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-
-		assert.Equal(t, currCase.wantModified, modified, "Case %d: %s", i, currCase.name)
-		for k, v := range currCase.wantContent {
-			bytes, err := ioutil.ReadFile(path.Join(currTmpDir, k))
-			require.NoError(t, err, "Case %d: %s. File: %s", i, currCase.name, k)
-			assert.Equal(t, v, string(bytes), "Case %d: %s. File: %s", i, currCase.name, k)
-		}
+			assert.Equal(t, tc.wantModified, modified)
+			for k, v := range tc.wantContent {
+				bytes, err := os.ReadFile(filepath.Join(tmpDir, k))
+				require.NoError(t, err)
+				require.Equal(t, v, string(bytes))
+			}
+		})
 	}
 }
 
 func TestUnlicenseFiles(t *testing.T) {
-	tmpDir, cleanup, err := dirs.TempDir("", "")
-	defer cleanup()
-	require.NoError(t, err)
-
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-	defer func() {
-		if err := os.Chdir(originalWd); err != nil {
-			require.NoError(t, err)
-		}
-	}()
-
-	for i, currCase := range []struct {
+	for _, tc := range []struct {
 		name         string
 		projectParam golicense.ProjectParam
-		goFiles      []gofiles.GoFileSpec
-		nonGoFiles   map[string]string
+		files        map[string]string
 		wantModified []string
 		wantContent  map[string]string
 	}{
@@ -318,18 +238,12 @@ func TestUnlicenseFiles(t *testing.T) {
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `// Copyright 2016 Palantir Technologies, Inc.
 package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+				"bar/bar.go": `// Copyright 2016 Palantir Technologies, Inc.
 // Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -346,18 +260,12 @@ package bar`,
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright {{YEAR}} Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src: `// Copyright 2018 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `// Copyright 2018 Palantir Technologies, Inc.
 package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+				"bar/bar.go": `// Copyright 2016 Palantir Technologies, Inc.
 // Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -374,7 +282,7 @@ package bar`,
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			nonGoFiles: map[string]string{
+			files: map[string]string{
 				"foo.txt": `// Copyright 2016 Palantir Technologies, Inc.
 package foo`,
 			},
@@ -389,18 +297,12 @@ package foo`,
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 				Exclude:  matcher.Name("foo.go"),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `// Copyright 2016 Palantir Technologies, Inc.
 package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+				"bar/bar.go": `// Copyright 2016 Palantir Technologies, Inc.
 // Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -417,17 +319,11 @@ package bar`,
 			projectParam: golicense.ProjectParam{
 				Licenser: golicense.NewLicenser(`// Copyright 2016 Palantir Technologies, Inc.`),
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src:     `package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `package foo`,
+				"bar/bar.go": `// Copyright 2016 Palantir Technologies, Inc.
 // Original comment
 package bar`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -455,22 +351,13 @@ package bar`,
 					},
 				},
 			},
-			goFiles: []gofiles.GoFileSpec{
-				{
-					RelPath: "foo.go",
-					Src: `// Copyright 2016 Palantir Technologies, Inc.
+			files: map[string]string{
+				"foo.go": `// Copyright 2016 Palantir Technologies, Inc.
 package foo`,
-				},
-				{
-					RelPath: "bar/bar.go",
-					Src: `// Copyright 2016 Custom Co.
+				"bar/bar.go": `// Copyright 2016 Custom Co.
 package bar`,
-				},
-				{
-					RelPath: "baz/baz.go",
-					Src: `// Copyright 2006 Legacy Inc.
+				"baz/baz.go": `// Copyright 2006 Legacy Inc.
 package baz`,
-				},
 			},
 			wantModified: []string{
 				"bar/bar.go",
@@ -484,34 +371,27 @@ package baz`,
 			},
 		},
 	} {
-		currTmpDir, err := ioutil.TempDir(tmpDir, "")
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
+		t.Run(tc.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			oldWd := chdir(t, tmpDir)
+			defer oldWd()
 
-		err = os.Chdir(currTmpDir)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
+			files := writeFiles(t, tmpDir, tc.files)
+			modified, err := golicense.UnlicenseFiles(files, tc.projectParam)
+			require.NoError(t, err)
 
-		_, err = gofiles.Write(currTmpDir, currCase.goFiles)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-		writeFiles(t, currCase.nonGoFiles)
-
-		files, err := matcher.ListFiles(currTmpDir, matcher.Name(`.+`), nil)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-
-		projectParam := currCase.projectParam
-		modified, err := golicense.UnlicenseFiles(files, projectParam)
-		require.NoError(t, err, "Case %d: %s", i, currCase.name)
-
-		assert.Equal(t, currCase.wantModified, modified, "Case %d: %s", i, currCase.name)
-		for k, v := range currCase.wantContent {
-			bytes, err := ioutil.ReadFile(path.Join(currTmpDir, k))
-			require.NoError(t, err, "Case %d: %s", i, currCase.name)
-			assert.Equal(t, v, string(bytes), "Case %d: %s", i, currCase.name)
-		}
+			assert.Equal(t, tc.wantModified, modified)
+			for k, v := range tc.wantContent {
+				bytes, err := os.ReadFile(path.Join(tmpDir, k))
+				require.NoError(t, err)
+				assert.Equal(t, v, string(bytes))
+			}
+		})
 	}
 }
 
 func TestValidateCustomLicenseParams(t *testing.T) {
-	for i, currCase := range []struct {
+	for _, tc := range []struct {
 		name          string
 		projectConfig config.ProjectConfig
 		wantErr       string
@@ -589,23 +469,41 @@ func TestValidateCustomLicenseParams(t *testing.T) {
 			wantErr: "the same path is defined by multiple custom header entries:\n\tbar: foo, bar, collides",
 		},
 	} {
-		_, err := currCase.projectConfig.ToParam()
-		if currCase.wantErr == "" {
-			assert.NoError(t, err, "Case %d: %s", i, currCase.name)
-		} else {
-			assert.EqualError(t, err, currCase.wantErr, "Case %d: %s", i, currCase.name)
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := tc.projectConfig.ToParam()
+			if tc.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func chdir(t *testing.T, dest string) func() {
+	orig, err := os.Getwd()
+	require.NoError(t, err)
+	err = os.Chdir(dest)
+	require.NoError(t, err)
+	return func() {
+		if err := os.Chdir(orig); err != nil {
+			panic(err)
 		}
 	}
 }
 
-func writeFiles(t *testing.T, files map[string]string) {
-	for k, v := range files {
-		dir := path.Dir(k)
-		if dir != "" {
-			err := os.MkdirAll(dir, 0755)
-			require.NoError(t, err)
-		}
-		err := ioutil.WriteFile(k, []byte(v), 0644)
+func writeFiles(t *testing.T, root string, files map[string]string) []string {
+	dir, err := filepath.Abs(root)
+	require.NoError(t, err)
+
+	var writtenFiles []string
+	for relPath, content := range files {
+		filePath := filepath.Join(dir, relPath)
+		err = os.MkdirAll(filepath.Dir(filePath), 0755)
 		require.NoError(t, err)
+		err = os.WriteFile(filePath, []byte(content), 0644)
+		require.NoError(t, err)
+		writtenFiles = append(writtenFiles, relPath)
 	}
+	return writtenFiles
 }
