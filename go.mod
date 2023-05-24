@@ -3,12 +3,12 @@ module github.com/palantir/go-license
 go 1.20
 
 require (
-	github.com/palantir/godel/v2 v2.83.0
+	github.com/palantir/godel/v2 v2.84.0
 	github.com/palantir/pkg/cobracli v1.2.0
 	github.com/palantir/pkg/matcher v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.7.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	gopkg.in/yaml.v2 v2.4.0
 )
 
