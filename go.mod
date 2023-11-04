@@ -7,7 +7,7 @@ require (
 	github.com/palantir/pkg/cobracli v1.2.0
 	github.com/palantir/pkg/matcher v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v2 v2.4.0
 )
