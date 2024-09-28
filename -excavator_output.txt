@@ -1,0 +1,8 @@
+go mod operation failed. This may mean that there are legitimate dependency issues with the "go.mod" definition in the repository and the updates performed by the gomod check. This branch can be cloned locally to debug the issue.
+
+Command that caused error:
+./godelw exec -- go get -d github.com/palantir/godel/v2@upgrade github.com/palantir/pkg/cobracli@upgrade github.com/palantir/pkg/matcher@upgrade github.com/spf13/cobra@upgrade github.com/spf13/pflag@upgrade github.com/stretchr/testify@upgrade gopkg.in/yaml.v2@upgrade gopkg.in/yaml.v3@upgrade
+
+Output:
+go: module github.com/palantir/pkg@upgrade found (v1.1.0), but does not contain package github.com/palantir/pkg/cobracli
+Error: exit status 1
