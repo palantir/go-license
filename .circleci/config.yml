@@ -29,30 +29,15 @@ pull-request-filter: &pull-request-filter
         - develop
 
 requires_jobs: &requires_jobs
-  - build
   - verify
-  - test
 
 workflows:
   version: 2
   verify:
     jobs:
-      - go-jobs/godel_build:
-          name: "build"
-          executor: "standard-executor"
-          <<: *all-tags-filter
       - go-jobs/godel_verify:
           name: "verify"
           executor: "standard-executor"
-          skip_tests: true
-          requires:
-            - "build"
-          <<: *all-tags-filter
-      - go-jobs/godel_test:
-          name: "test"
-          executor: "standard-executor"
-          requires:
-            - "build"
           <<: *all-tags-filter
       - go-jobs/circle_all:
           name: "circle-all"
