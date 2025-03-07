@@ -75,7 +75,7 @@ func validateCustomHeaderParams(headerParams []golicense.CustomHeaderParam) erro
 		}
 	}
 	if len(customPathCollisionMsgs) > 0 {
-		return errors.Errorf(strings.Join(append([]string{"the same path is defined by multiple custom header entries:"}, customPathCollisionMsgs...), "\n\t"))
+		return errors.Errorf("%s", strings.Join(append([]string{"the same path is defined by multiple custom header entries:"}, customPathCollisionMsgs...), "\n\t"))
 	}
 	return nil
 }
