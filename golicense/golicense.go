@@ -7,7 +7,6 @@ package golicense
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -206,7 +205,7 @@ func applyLicenseToFiles(files []string, licenser Licenser, modify bool) ([]stri
 		if !licenser.Matches(content) {
 			if modify {
 				content = licenser.Add(content)
-				if err := ioutil.WriteFile(path, []byte(content), fi.Mode()); err != nil {
+				if err := os.WriteFile(path, []byte(content), fi.Mode()); err != nil {
 					return false, errors.Wrapf(err, "failed to write file %s with new license", path)
 				}
 			}
@@ -221,7 +220,7 @@ func removeLicenseFromFiles(files []string, licenser Licenser, modify bool) ([]s
 		if licenser.Matches(content) {
 			if modify {
 				content = licenser.Remove(content)
-				if err := ioutil.WriteFile(path, []byte(content), fi.Mode()); err != nil {
+				if err := os.WriteFile(path, []byte(content), fi.Mode()); err != nil {
 					return false, errors.Wrapf(err, "failed to write file %s with license removed", path)
 				}
 			}
@@ -239,7 +238,7 @@ func visitFiles(files []string, visitor func(path string, fi os.FileInfo, conten
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to stat %s", f)
 		}
-		bytes, err := ioutil.ReadFile(f)
+		bytes, err := os.ReadFile(f)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read %s", f)
 		}
