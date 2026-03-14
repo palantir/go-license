@@ -5,7 +5,6 @@
 package commoncmd
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/palantir/go-license/golicense/config"
@@ -14,7 +13,7 @@ import (
 )
 
 func LoadConfig(cfgFile string) (config.ProjectConfig, error) {
-	cfgYML, err := ioutil.ReadFile(cfgFile)
+	cfgYML, err := os.ReadFile(cfgFile)
 	if os.IsNotExist(err) {
 		return config.ProjectConfig{}, nil
 	}
