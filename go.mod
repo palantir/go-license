@@ -2,6 +2,8 @@ module github.com/palantir/go-license
 
 go 1.26.0
 
+toolchain go1.26.3
+
 require (
 	github.com/palantir/godel/v2 v2.155.0
 	github.com/palantir/pkg/cobracli v1.3.0
