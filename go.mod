@@ -2,7 +2,7 @@ module github.com/palantir/go-license
 
 go 1.26.0
 
-toolchain go1.26.6
+toolchain go1.27.0
 
 require (
 	github.com/palantir/godel/v2 v2.170.0
