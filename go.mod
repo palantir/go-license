@@ -5,7 +5,7 @@ go 1.27.0
 toolchain go1.27.1
 
 require (
-	github.com/palantir/godel/v2 v2.183.0
+	github.com/palantir/godel/v2 v2.186.0
 	github.com/palantir/pkg/cobracli v1.4.0
 	github.com/palantir/pkg/matcher v1.3.0
 	github.com/pkg/errors v0.9.1
