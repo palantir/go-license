@@ -45,7 +45,7 @@ custom-headers:
     paths:
       - subprojectDir
 exclude:
-  exclude-names:
+  names:
     - "vendor"
 ```
 
